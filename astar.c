@@ -55,18 +55,22 @@ bool is_free (struct Cell cell, int map[][COL]) {
 		return false;
 }
 
-// Function to find the shortest path between the starting point and the goal point.
-int pathfinding (int map[][COL], struct Cell start, struct Cell goal) {
+// Function to check the correctness of the start and goal cells
+void control (struct Cell start, struct Cell goal) {
 	if ((!check_position(start)) || (!check_position(goal)))
-		return 0;
+		printf("Start/goal point out of the map\n");
 
 	if ((!is_free(start)) || (!is_free(goal)))
-		return 1;
+		printf("Start/goal point not reachable\n");
 
 	if (is_goal(start, goal))
-		return 2;
+		printf("Start and goal points are the same\n");
+}
 
-	return 3;
+// Function to find the shortest path between the starting point and the goal point.
+void pathfinding (int map[][COL], struct Cell start, struct Cell goal) {
+
+	return;
 }
 
 int main () {
@@ -93,14 +97,7 @@ int main () {
 	goal.row = 1;
 	goal.col = 6;
 
-	path = pathfinding(map, start, goal);
-	if (path == 0)
-		printf("Start/goal point out of the map\n");
-	else if (path == 1)
-		printf("Start/goal point not reachable\n");
-	else if (path == 2)
-		printf("Start and goal points are the same\n");
-	else
-		// Here we call the function that prints the output (yet to be implemented)
+	control(start, goal);
+
 	return 0;
 }
