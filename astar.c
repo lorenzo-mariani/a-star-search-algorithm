@@ -6,58 +6,73 @@
 #define ROW 7 
 #define COL 7
 
-struct cell {
-
+// Struct to define position and paramaters of a cell in a map
+struct Cell {
+	int row;
+	int col;
 	double g;	// Cost of the backward path from the current cell to the starting point
 	double h;	// Heuristic function. Estimates the cost from the current cell to the goal point
 	double f;	// f = g + h. Estimates the total cost of the path from the starting point to the goal point passing by the current cell
-
 };
 
-// Used to define the starting point and the goal point
-struct key_cell {
-	
-	int row;
-	int col;
-};
+/*
+// Function to compute the heuristic by using the Manhattan distance.
+// Use this function when there is a 4-points connectivity.
+int heuristic (struct Cell cell, struct Cell goal) {
+	return ((abs(cell.row – goal.row))+(abs(cell.col - goal.col)));
+}
+*/
 
-// Function to compute the heuristic
-double heuristic (int row, int col, struct key_cell goal) {
-	
-	// Euclidean distance
-	return ((double)sqrt ((row - goal.row)*(row - goal.row) + (col - goal.col)*(col - goal.col)));
+/*
+// Function to compute the heuristic by using the Euclidean distance.
+// Use this function when there is a 8-points connectivity.
+double heuristic (struct Cell cell, struct Cell goal) {
+	return ((double)sqrt((cell.row - goal.row)*(cell.row - goal.row) + (cell.col - goal.col)*(cell.col - goal.col)));
+}
+*/
+
+// Function to check whether the position of a cell complies with the dimension of a map or not
+bool check_position (struct Cell cell) {
+	if (cell.row >= 0 && cell.row < ROW && cell.col >= 0 && cell.col < COL)
+		return true;
+	else
+		return false; 
 }
 
 // Function to check whether the goal point has been reached or not
-bool is_goal (int row, int col, struct key_cell goal) {
-
-	if (row == goal.row && col == goal.col)
+bool is_goal (struct Cell cell, struct Cell goal) {
+	if (cell.row == goal.row && cell.col == goal.col)
 		return true;
 	else
 		return false;
-
 }
 
 // Function to check if the current cell is free or if there is an obstacle
-bool is_free(int row, int col, int map[][COL]) {
-
-	if (map[row][col] == 1)
+bool is_free (struct Cell cell, int map[][COL]) {
+	if (map[cell.row][cell.col] == 1)
 		return true;
 	else
 		return false;
 }
 
-void pathfinding (int map[][COL], struct key_cell start, struct key_cell goal) {
+// Function to find the shortest path between the starting point and the goal point.
+int pathfinding (int map[][COL], struct Cell start, struct Cell goal) {
+	if ((!check_position(start)) || (!check_position(goal)))
+		return 0;
 
+	if ((!is_free(start)) || (!is_free(goal)))
+		return 1;
+
+	if (is_goal(start, goal))
+		return 2;
+
+	return 3;
 }
 
-int main() {
+int main () {
 	
-	/*
-	0 - There is an obstacle
-	1 - The cell is free
-	*/
-
+	// 0 - There is an obstacle
+	// 1 - The cell is free
 	int map[ROW][COL] = 
 	{
 		{1, 1, 1, 1, 1, 1, 1},
@@ -69,8 +84,8 @@ int main() {
 		{1, 1, 1, 1, 1, 1, 1}
 	};
 
-	struct key_cell start;	// Starting point
-	struct key_cell goal;	// Goal point
+	struct Cell start;	// Starting point
+	struct Cell goal;	// Goal point
 
 	start.row = 6; 
 	start.col = 2;
@@ -78,6 +93,14 @@ int main() {
 	goal.row = 1;
 	goal.col = 6;
 
+	path = pathfinding(map, start, goal);
+	if (path == 0)
+		printf("Start/goal point out of the map\n");
+	else if (path == 1)
+		printf("Start/goal point not reachable\n");
+	else if (path == 2)
+		printf("Start and goal points are the same\n");
+	else
+		// Here we call the function that prints the output (yet to be implemented)
 	return 0;
-
 }
