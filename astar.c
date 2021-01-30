@@ -145,9 +145,13 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 // Function to find the shortest path between the starting point and the goal point.
 void search (int map[][COL], Cell start, Cell goal) {
 
-	Cell* openSet[] = (Cell*)malloc(sizeof(Cell)*10);
-	Cell* closedSet[] = (Cell*)malloc(sizeof(Cell)*10);
-	Cell* neighbors[] = (Cell*)malloc(sizeof(Cell)*MAX_NEIGHBORS);
+	Cell *openSet;
+	Cell *closedSet;
+	Cell *neighbors;
+
+	openSet = (Cell*)malloc(sizeof(Cell)*10);
+	closedSet = (Cell*)malloc(sizeof(Cell)*10);
+	neighbors = (Cell*)malloc(sizeof(Cell)*MAX_NEIGHBORS);
 
 	int openSetSize = 0;
 	int closedSetSize = 0;
@@ -166,7 +170,7 @@ void search (int map[][COL], Cell start, Cell goal) {
 
 		Cell current = openSet[best];
 
-		if (current == goal) {
+		if (current.row == goal.row && current.col == goal.col) {
 			// The algorithm stops
 		}
 		
