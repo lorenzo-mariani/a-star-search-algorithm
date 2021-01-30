@@ -69,12 +69,85 @@ int check (Cell start, Cell goal, int map[][COL]) {
 	return 1;
 }
 
+void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
+	
+	int i = 0;
+	Cell neighbor;
+	
+	// Neighbor in position (row - 1, col)
+	if (check_position(c.row - 1, c.col)) {
+		neighbor.row = c.row - 1;
+		neighbor.col = c.col;
+		neighbors[i] = neighbor;
+		i++;
+	}
+
+	// Neighbor in position (row - 1, col + 1)
+	if (check_position(current.row - 1, current.col + 1)) {
+		neighbor.row = c.row - 1;
+		neighbor.col = c.col + 1;
+		neighbors[i] = neighbor;
+		i++;
+	}
+
+	// Neighbor in position (row, col + 1)
+	if (check_position(current.row, current.col + 1)) {
+		neighbor.row = c.row;
+		neighbor.col = c.col + 1;
+		neighbors[i] = neighbor;
+		i++;
+	}
+
+	// Neighbor in position (row + 1, col + 1)
+	if (check_position(current.row + 1, current.col + 1)) {
+		neighbor.row = c.row + 1;
+		neighbor.col = c.col + 1;
+		neighbors[i] = neighbor;
+		i++;
+	}
+
+	// Neighbor in position (row + 1, col)
+	if (check_position(current.row + 1, current.col)) {
+		neighbor.row = c.row + 1;
+		neighbor.col = c.col;
+		neighbors[i] = neighbor;
+		i++;
+	}
+
+	// Neighbor in position (row + 1, col - 1)
+	if (check_position(current.row + 1, current.col - 1)) {
+		neighbor.row = c.row + 1;
+		neighbor.col = c.col - 1;
+		neighbors[i] = neighbor;
+		i++;
+	}
+
+	// Neighbor in position (row, col - 1)
+	if (check_position(current.row, current.col - 1)) {
+		neighbor.row = c.row;
+		neighbor.col = c.col - 1;
+		neighbors[i] = neighbor;
+		i++;
+	}
+
+	// Neighbor in position (row - 1, col - 1)
+	if (check_position(current.row - 1, current.col -  1)) {
+		neighbor.row = c.row - 1;
+		neighbor.col = c.col - 1;
+		neighbors[i] = neighbor;
+		i++;	
+	}
+
+	neighbors = realloc(neighbors, (MAX_NEIGHBORS - i)*sizeof(Cell));
+	return;
+}
+
 // Function to find the shortest path between the starting point and the goal point.
 void search (int map[][COL], Cell start, Cell goal) {
 
 	Cell* openSet[] = (Cell*)malloc(sizeof(Cell)*10);
 	Cell* closedSet[] = (Cell*)malloc(sizeof(Cell)*10);
-	Cell* neighbors[] = (Cell*)malloc(sizeof(Cell)*10);
+	Cell* neighbors[] = (Cell*)malloc(sizeof(Cell)*MAX_NEIGHBORS);
 
 	int openSetSize = 0;
 	int closedSetSize = 0;
@@ -101,50 +174,13 @@ void search (int map[][COL], Cell start, Cell goal) {
 		for (int i = best; i < openSetSize - 1; i++) {
 			openSet[i] = openSet[i + 1];
 		}
+		openSet = realloc(openSet, (openSetSize - 1)*sizeof(Cell));
 
 		closedSet[closedSetSize] = current;
 		closedSetSize++;
 		openSetSize--;
 
-		// Neighbor in position (row - 1, col)
-		if (check_position(current.row - 1, current.col)) {
-			
-		}
-
-		// Neighbor in position (row - 1, col + 1)
-		if (check_position(current.row - 1, current.col + 1)) {
-			
-		}
-
-		// Neighbor in position (row, col + 1)
-		if (check_position(current.row, current.col + 1)) {
-			
-		}
-
-		// Neighbor in position (row + 1, col + 1)
-		if (check_position(current.row + 1, current.col + 1)) {
-			
-		}
-
-		// Neighbor in position (row + 1, col)
-		if (check_position(current.row + 1, current.col)) {
-			
-		}
-
-		// Neighbor in position (row + 1, col - 1)
-		if (check_position(current.row + 1, current.col - 1)) {
-			
-		}
-
-		// Neighbor in position (row, col - 1)
-		if (check_position(current.row, current.col - 1)) {
-			
-		}
-
-		// Neighbor in position (row - 1, col - 1)
-		if (check_position(current.row - 1, current.col -  1)) {
-			
-		}
+		find_neighbors(map, current, neighbors);
 
 	} else {
 		// No solution

@@ -1,4 +1,3 @@
 - Add list of neighbors for each cell
-- Check the correctness of the malloc function
+- Check the correctness of the use of the malloc function
 - Add realloc for each dynamic array
-- Add realloc when the "current" cell is removed from the open set
