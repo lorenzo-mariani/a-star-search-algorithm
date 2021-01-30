@@ -138,7 +138,7 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 		i++;	
 	}
 
-	neighbors = realloc(neighbors, (MAX_NEIGHBORS - i)*sizeof(Cell));
+	neighbors = realloc(neighbors, (i)*sizeof(Cell));
 	return;
 }
 
