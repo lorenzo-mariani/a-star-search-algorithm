@@ -7,37 +7,33 @@
 #define COL 7
 #define MAX_NEIGHBORS 8
 
-// Struct to define position and paramaters of a cell in a map
+// Position and paramaters of a cell in a map
 typedef struct {
 	int row, col;
 	double f, g, h;
 } Cell;
 
 /*
-// Function to compute the heuristic by using the Manhattan distance.
-// Use this function when there is a 4-points connectivity.
-int heuristic (Cell cell, Cell goal) {
-	return ((abs(cell.row – goal.row))+(abs(cell.col - goal.col)));
+// Computation of heuristic via Manhattan distance (to be used if there is 4-point connectivity) 
+double heuristic (Cell a, Cell b) {
+	return ((double)((abs(a.row – b.row))+(abs(a.col - b.col))));
+}
+
+// Computation of heuristic via Euclidean distance (to be used if there is 8-point connectivity)
+double heuristic (Cell a, Cell b) {
+	return ((double)sqrt((a.row - b.row)*(a.row - b.row) + (a.col - b.col)*(a.col - b.col)));
 }
 */
 
-/*
-// Function to compute the heuristic by using the Euclidean distance.
-// Use this function when there is a 8-points connectivity.
-double heuristic (Cell cell, Cell goal) {
-	return ((double)sqrt((cell.row - goal.row)*(cell.row - goal.row) + (cell.col - goal.col)*(cell.col - goal.col)));
-}
-*/
-
-// Function to check whether the position of a cell complies with the dimension of a map or not
-bool check_position int row, int col) {
+// Check whether the position of a cell complies with the dimension of a map or not
+bool check_position (int row, int col) {
 	if (row >= 0 && row < ROW && col >= 0 && col < COL)
 		return true;
 	else
 		return false; 
 }
 
-// Function to check whether the goal point has been reached or not
+// Check whether the goal point has been reached or not
 bool is_goal (int row, int col, Cell goal) {
 	if (row == goal.row && col == goal.col)
 		return true;
@@ -45,7 +41,7 @@ bool is_goal (int row, int col, Cell goal) {
 		return false;
 }
 
-// Function to check if the current cell is free or if there is an obstacle
+// Check if the current cell is free or if there is an obstacle
 bool is_free (int row, int col, int map[][COL]) {
 	if (map[row][col] == 1)
 		return true;
@@ -53,25 +49,23 @@ bool is_free (int row, int col, int map[][COL]) {
 		return false;
 }
 
-// Function to check the correctness of the start and goal cells
+// Check the correctness of the start and goal cells
 int check (Cell start, Cell goal, int map[][COL]) {
-	// Check if the start/goal points are inside the map
 	if ((!check_position(start.row, start.col)) || (!check_position(goal.row, goal.col))) {
 		printf("Start/goal point out of the map\n");
 		return 0;
 	}
 	
-	// Check if the start/goal points are free, i.e., if there is no obstacle above them
 	if ((!is_free(start.row, start.col, map)) || (!is_free(goalrow, goal.col, map))) {
 		printf("Start/goal point not reachable\n");
 		return 0;
 	}
 
-	// Check if the start and goal points coincide
 	if (is_goal(start.row, start.col, goal)) {
 		printf("Start and goal points are the same\n");
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -187,7 +181,12 @@ int main () {
 	goal.row = 1;
 	goal.col = 6;
 
-	check(start, goal, map[][COL]);
+	if (check(start, goal, map[][COL]) == 1) {
+		// Execute the algorithm
+	}
+	else {
+		return 0;
+	}
 
 	return 1;
 }
