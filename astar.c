@@ -56,7 +56,7 @@ int check (Cell start, Cell goal, int map[][COL]) {
 		return 0;
 	}
 	
-	if ((!is_free(start.row, start.col, map)) || (!is_free(goalrow, goal.col, map))) {
+	if ((!is_free(start.row, start.col, map)) || (!is_free(goal.row, goal.col, map))) {
 		printf("Start/goal point not reachable\n");
 		return 0;
 	}
@@ -83,7 +83,7 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 	}
 
 	// Neighbor in position (row - 1, col + 1)
-	if (check_position(current.row - 1, current.col + 1)) {
+	if (check_position(c.row - 1, c.col + 1)) {
 		neighbor.row = c.row - 1;
 		neighbor.col = c.col + 1;
 		neighbors[i] = neighbor;
@@ -91,7 +91,7 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 	}
 
 	// Neighbor in position (row, col + 1)
-	if (check_position(current.row, current.col + 1)) {
+	if (check_position(c.row, c.col + 1)) {
 		neighbor.row = c.row;
 		neighbor.col = c.col + 1;
 		neighbors[i] = neighbor;
@@ -99,7 +99,7 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 	}
 
 	// Neighbor in position (row + 1, col + 1)
-	if (check_position(current.row + 1, current.col + 1)) {
+	if (check_position(c.row + 1, c.col + 1)) {
 		neighbor.row = c.row + 1;
 		neighbor.col = c.col + 1;
 		neighbors[i] = neighbor;
@@ -107,7 +107,7 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 	}
 
 	// Neighbor in position (row + 1, col)
-	if (check_position(current.row + 1, current.col)) {
+	if (check_position(c.row + 1, c.col)) {
 		neighbor.row = c.row + 1;
 		neighbor.col = c.col;
 		neighbors[i] = neighbor;
@@ -115,7 +115,7 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 	}
 
 	// Neighbor in position (row + 1, col - 1)
-	if (check_position(current.row + 1, current.col - 1)) {
+	if (check_position(c.row + 1, c.col - 1)) {
 		neighbor.row = c.row + 1;
 		neighbor.col = c.col - 1;
 		neighbors[i] = neighbor;
@@ -123,7 +123,7 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 	}
 
 	// Neighbor in position (row, col - 1)
-	if (check_position(current.row, current.col - 1)) {
+	if (check_position(c.row, c.col - 1)) {
 		neighbor.row = c.row;
 		neighbor.col = c.col - 1;
 		neighbors[i] = neighbor;
@@ -131,7 +131,7 @@ void find_neighbors (int map[][COL], Cell c, Cell* neighbors) {
 	}
 
 	// Neighbor in position (row - 1, col - 1)
-	if (check_position(current.row - 1, current.col -  1)) {
+	if (check_position(c.row - 1, c.col -  1)) {
 		neighbor.row = c.row - 1;
 		neighbor.col = c.col - 1;
 		neighbors[i] = neighbor;
@@ -217,7 +217,7 @@ int main () {
 	goal.row = 1;
 	goal.col = 6;
 
-	if (check(start, goal, map[][COL]) == 1) {
+	if (check(start, goal, map) == 1) {
 		// Execute the algorithm
 	}
 	else {
