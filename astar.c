@@ -11,17 +11,17 @@
 typedef struct {
 	int row, col;
 	double f, g, h;
+	int parentRow, parentCol;
 } Cell;
 
 /*
-// Computation of heuristic via Manhattan distance (to be used if there is 4-point connectivity) 
+// Computation of heuristic via Euclidean or Manhattan distance
 double heuristic (Cell a, Cell b) {
-	return ((double)((abs(a.row – b.row))+(abs(a.col - b.col))));
-}
 
-// Computation of heuristic via Euclidean distance (to be used if there is 8-point connectivity)
-double heuristic (Cell a, Cell b) {
-	return ((double)sqrt((a.row - b.row)*(a.row - b.row) + (a.col - b.col)*(a.col - b.col)));
+	double distance;
+	distance = ((double)sqrt((a.row - b.row)*(a.row - b.row) + (a.col - b.col)*(a.col - b.col))); // Euclidean distance
+	distance = ((double)((abs(a.row - b.row))+(abs(a.col - b.col)))); // Manhattan distance
+	return distance;
 }
 */
 
@@ -180,11 +180,39 @@ void search (int map[][COL], Cell start, Cell goal) {
 		}
 		openSet = realloc(openSet, (openSetSize - 1)*sizeof(Cell));
 
-		closedSet[closedSetSize] = current;
+		closedSet[closedSetSize] = current; // Adding "current" inside the closed set
 		closedSetSize++;
 		openSetSize--;
 
 		find_neighbors(map, current, neighbors);
+
+		for (int i = 0; i < neighborSize; i++) {
+			Cell neighbor = neighbors[i];
+
+			for (int j = 0; j < closedSetSize; j++) {
+				if (neighbor.row != closedSet[j].row && neighbor.col != closedSet[j].col) {
+					if (j == closedSetSize - 1) {
+						int tmpG = current.g + 1;
+
+						for (int k = 0; k < openSetSize; k++) {
+							if (neighbor.row == openSet[k].row && neighbor.col == openSet[k].col) {
+								if (tmpG < neighbor.g)
+									neighbor.g = tmpG;
+							}
+							else {
+								neighbor.g = tmpG;
+								// Here we must add "neighbor" to the open set
+							}
+						}
+
+						neighbor.h = heuristic(neighbor, goal);
+						neighbor.f = neighbor.g + neighbor.h;
+						neighbor.parentRow = current.row;
+						neighbor.parentCol = current.col;
+					}
+				}
+			}
+		}
 
 	} else {
 		// No solution
