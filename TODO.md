@@ -1,3 +1,5 @@
-- Add list of neighbors for each cell
+- Initialize f, g, h
 - Check the correctness of the use of the malloc function
 - Add realloc for each dynamic array
+- Add a path
+- Print the final path
