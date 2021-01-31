@@ -45,7 +45,7 @@ int check (Cell start, Cell goal, int map[][COL]) {
 		printf("Start/goal point out of the map\n");
 		return 0;
 	}
-	
+
 	if ((!is_free(start.row, start.col, map)) || (!is_free(goal.row, goal.col, map))) {
 		printf("Start/goal point not reachable\n");
 		return 0;
@@ -184,7 +184,7 @@ void search (int map[][COL], Cell start, Cell goal) {
 	int openSetSize = 0;
 	int closedSetSize = 0;
 
-	openSet[0] = start;	// The first cell in the open set is the starting point
+	openSet[0] = start;	// The first cell in the open set is the starting cell
 	openSetSize++;
 
 	if (openSetSize > 0) {
@@ -201,11 +201,9 @@ void search (int map[][COL], Cell start, Cell goal) {
 
 		// If the current cell is the goal point the algorithm stops
 		if (is_goal(current.row, current.col, goal)) {
-
 			free(openSet);
 			free(closedSet);
 			free(neighbors);
-
 			return;
 		}
 		
@@ -252,7 +250,6 @@ void search (int map[][COL], Cell start, Cell goal) {
 				}
 			}
 		}
-
 	} else {
 		printf("No solution was found\n");
 	}
