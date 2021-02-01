@@ -3,9 +3,9 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define ROW 7 
+#define ROW 7 	// the map must be consistent wrt ROW, COL
 #define COL 7
-#define CONNECTIVITY 8
+#define CONNECTIVITY 8	// it must be 4 or 8
 
 typedef struct {
 	int row, col;	// Row and column of a cell
@@ -135,8 +135,9 @@ Cell * find_neighbors (bool map[][COL], Cell c) {
 	Cell neighbors[counter];
 	for (int i=0; i<counter; i++){
 		neighbors[i] = tmp[i];
+		printf("%d %d, ", neighbors[i].row, neighbors[i].col);
 	}
-
+	printf("size: %d", sizeof(neighbors));
 	return neighbors;
 }
 
@@ -205,11 +206,11 @@ void search (bool map[][COL], Cell start, Cell goal) {
 
 		Cell current = openSet[best];
 
-		// If the current cell is the goal point the algorithm stops
+		// If the current cell is the goal point, the algorithm stops
 		if (is_goal(current.row, current.col, goal)) {
 			free(openSet);
 			free(closedSet);
-			//free(neighbors);
+			printf("Goal reached!\n");
 			return;
 		}
 		
@@ -226,7 +227,9 @@ void search (bool map[][COL], Cell start, Cell goal) {
 
 		Cell * neighbors;
 		neighbors = find_neighbors(map, current);
-		int neighborSize = sizeof(neighbors)/sizeof(Cell);
+		int neighborSize = 5; //sizeof(neighbors)/sizeof(neighbors[0]);
+		printf(neighbors[0].row);
+		//printf("%d %d, %d %d, %d %d, %d %d - size: %d - size: %d", neighbors[0].row, neighbors[0].col, neighbors[1].row, neighbors[1].col, neighbors[2].row, neighbors[2].col, neighbors[3].row, neighbors[3].col, sizeof(neighbors), sizeof(neighbors[0]));
 
 		for (int i = 0; i < neighborSize; i++) {
 			Cell neighbor = neighbors[i];
@@ -293,6 +296,7 @@ int main () {
 
 	if (check(start, goal, map) == 1) {
 		// Execute the algorithm
+		search(map, start, goal);
 	}
 	else {
 		return 0;
