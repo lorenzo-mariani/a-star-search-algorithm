@@ -156,7 +156,7 @@ double heuristic (Cell a, Cell b) {
 }
 
 // Function to find the shortest path between the starting point and the goal point
-void search (int map[][COL], Cell start, Cell goal) {
+void search (bool map[][COL], Cell start, Cell goal) {
 
 	Cell arrayCells[ROW*COL];	// Array containining the details of each cell
 	
