@@ -228,24 +228,37 @@ void search (bool map[][COL], Cell start, Cell goal) {
 		neighbors = find_neighbors(map, current);
 		int neighborSize = sizeof(neighbors)/sizeof(Cell);
 
+		// Loop for checking every neighbor of the current cell
 		for (int i = 0; i < neighborSize; i++) {
 			Cell neighbor = neighbors[i];
 
+			// Check if the neighbor is already in the closed set. If the negighbor is already in the closed set I do nothing, 
+			// otherwise I evaluate it.
 			for (int j = 0; j < closedSetSize; j++) {
 				if (neighbor.row != closedSet[j].row && neighbor.col != closedSet[j].col) {
 					if (j == closedSetSize - 1) {
+						
+						// If I am here the neighbor is not in the closed set
 
 						double tmpG = current.g + 1;
 
+						// Check if the neighbor is already in the open set. If it is not it means that a new cell was discovered
 						for (int k = 0; k < openSetSize; k++) {
 							if (neighbor.row == openSet[k].row && neighbor.col == openSet[k].col) {
-								if (k == openSetSize - 1) {
+
+									// If I am here the neighbor is already in the open set
+
+									// Check if I have reached the neighbor with a lower cost than before. If yes, I update the value of g,
+									// otherwise I do nothing.
 									if (tmpG < neighbor.g)
 										neighbor.g = tmpG;
-								}
 							}
 							else if (k == openSetSize - 1) {
+
+								// If I am here the neighbor is not in the open set
+
 								neighbor.g = tmpG;
+
 								// Here the "neighbor" must be added to the open set + realloc
 							}
 						}
