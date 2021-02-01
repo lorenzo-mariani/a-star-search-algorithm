@@ -32,15 +32,15 @@ bool is_goal (int row, int col, Cell goal) {
 }
 
 // Check if the current cell is free or if there is an obstacle
-bool is_free (int row, int col, int map[][COL]) {
-	if (map[row][col] == 1)
+bool is_free (int row, int col, bool map[][COL]) {
+	if (map[row][col] == true)
 		return true;
 	else
 		return false;
 }
 
 // Check the correctness of the start and goal cells
-int check (Cell start, Cell goal, int map[][COL]) {
+int check (Cell start, Cell goal, bool map[][COL]) {
 	if ((!check_position(start.row, start.col)) || (!check_position(goal.row, goal.col))) {
 		printf("Start/goal point out of the map\n");
 		return 0;
@@ -59,7 +59,7 @@ int check (Cell start, Cell goal, int map[][COL]) {
 }
 
 // Search for cells adjacent to the current one
-Cell find_neighbors (int map[][COL], Cell c) {
+Cell * find_neighbors (bool map[][COL], Cell c) {
 
 	int counter = 0;
 	Cell neighbor;
@@ -224,7 +224,8 @@ void search (int map[][COL], Cell start, Cell goal) {
 		closedSetSize++;
 		openSetSize--;
 
-		Cell neighbors[CONNECTIVITY] = find_neighbors(map, current);
+		Cell * neighbors;
+		neighbors = find_neighbors(map, current);
 		int neighborSize = sizeof(neighbors)/sizeof(Cell);
 
 		for (int i = 0; i < neighborSize; i++) {
@@ -263,32 +264,30 @@ void search (int map[][COL], Cell start, Cell goal) {
 	
 	free(openSet);
 	free(closedSet);
-	free(neighbors);
 
 	return;
 }
 
 int main () {
 	
-	// 0 - There is an obstacle
-	// 1 - The cell is free
+	// false - There is an obstacle
+	// true - The cell is free
 	bool map[ROW][COL] = 
 	{
-		{1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 0, 0, 1, 1, 1},
-		{1, 1, 0, 0, 1, 1, 1},
-		{1, 0, 0, 0, 1, 1, 1},
-		{1, 1, 0, 0, 1, 1, 1},
-		{1, 1, 1, 1, 0, 0, 1},
-		{1, 1, 1, 1, 1, 1, 1}
+		{true, true, true, true, true, true, true},
+		{true, true, false, false, true, true, true},
+		{true, true, false, false, true, true, true},
+		{true, false, false, false, true, true, true},
+		{true, true, false, false, true, true, true},
+		{true, true, true, true, false, false, true},
+		{true, true, true, true, true, true, true}
 	};
 
 	Cell start;	// Starting point
-	Cell goal;	// Goal point
-
 	start.row = 6; 
 	start.col = 2;
-
+	
+	Cell goal;	// Goal point
 	goal.row = 1;
 	goal.col = 6;
 

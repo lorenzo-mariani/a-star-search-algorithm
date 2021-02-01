@@ -3,5 +3,5 @@
 - Aggiungere e stampare percorso da start a goal
 - OK - (RIGA 156-176) -> Modificare arrayCells ad una dimensione + in ogni ciclo for si deve avere arrayCells[i*ROW + j].f = ...
 - OK - Modificare vettore neighbors (con vettore temporaneo ...) - sia nella funzione "search" che nella funzione "find_neighbors"
-- Volendo si può modificare la mappa con dei boolean al posto degli int (quindi modificare anche funzione "is_free")
+- OK - Volendo si può modificare la mappa con dei boolean al posto degli int (quindi modificare anche funzione "is_free")
 - OK - find_neighbors: ritorna direttamente il vettore neighbors[], poi si calcola la dimensione come sizeof(vect)/sizeof(Cell).
