@@ -1,6 +1,10 @@
 - Controllare malloc
-- Aggiungere realloc per openSet e closedSet
-- Aggiungere e stampare percorso da start a goal
+- Aggiungere realloc per openSet, closedSet e path
+- Verificare che vengano aggiornati i valori delle celle presenti all'interno di arrayCells
+- Provare ad implementare la chiamata alla funzione find_neighbors() senza eseguirla all'interno della funzione search()
+- Trovare possibili sezioni di codice da poter eseguire in parallelo (stando attenti alle variabili condivise)
+- Rimuovere numNeighbors all'interno della struct Cell (se inutile)
+- OK - Aggiungere e stampare percorso da start a goal
 - OK - (RIGA 156-176) -> Modificare arrayCells ad una dimensione + in ogni ciclo for si deve avere arrayCells[i*ROW + j].f = ...
 - OK - Modificare vettore neighbors (con vettore temporaneo ...) - sia nella funzione "search" che nella funzione "find_neighbors"
 - OK - Volendo si può modificare la mappa con dei boolean al posto degli int (quindi modificare anche funzione "is_free")
