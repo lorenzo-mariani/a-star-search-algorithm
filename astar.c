@@ -182,19 +182,22 @@ void search (bool map[][COL], Cell start, Cell goal) {
 	int pos_start = start.row*ROW + start.col;
 	arrayCells[pos_start].f = 0.0;
 	arrayCells[pos_start].g = 0.0;
-	arrayCells[pos_start].h = 0.0;		// ma è giusto?
+	arrayCells[pos_start].h = 0.0;
 	arrayCells[pos_start].parentRow = start.row;
 	arrayCells[pos_start].parentCol = start.col;
 
-	Cell *openSet;	// Priority queue
+	Cell *openSet;		// Priority queue
 	openSet = (Cell*)malloc(sizeof(Cell)*10);
 	int openSetSize = 0;
 
 	Cell *closedSet;	// Cells already visited
 	closedSet = (Cell*)malloc(sizeof(Cell)*10);
 	int closedSetSize = 0;
+	
+	Cell *path;		// Path between the starting point and the goal point
+	path = (Cell*)malloc(sizeof(Cell)*10);
 
-	openSet[0] = start;	// The first cell in the open set is the starting cell
+	openSet[0] = start;		// The first cell in the open set is the starting cell
 	openSetSize++;
 
 	if (openSetSize > 0) {
@@ -211,9 +214,37 @@ void search (bool map[][COL], Cell start, Cell goal) {
 
 		// If the current cell is the goal point, the algorithm stops
 		if (is_goal(c.row, c.col, goal)) {
+			
+			Cell tmp = c;	// Temporary cell initialized to current cell (goal point)
+			int i = 0;
+			
+			path[i] = tmp;	// Adding the cell in the first position of the path
+			i++;
+			
+			// These instructions are executed every time a cell has a parent (the loop stops when the starting cell is evaluated, whose parent is the cell itself) 
+			while ((tmp.parentRow && tmp.parentCol) && (tmp.row != tmp.parentRow && tmp.col != tmp.parentCol)) {
+				int pos = tmp.parentRow*ROW + tmp.parentCol; // Variable used to find the position of the cell within arrayCells 
+				
+				// ATTENZIONE: andrebbe inserita una realloc per il vettore path!"
+				
+				path[i] = arrayCells[pos];	// Adding the parent cell to the path
+				tmp = arrayCells[pos];	// Temporary cell value updated to the parent cell 
+				i++;
+			}
+			
+			int pathSize = sizeof(*path)/sizeof(path[0]);
+			
+			printf("Goal reached! The backward path is:\n");
+			
+			// Print the backward path
+			for (int j = 0; j < pathSize; j++) {
+				printf("(%d, %d)\n", path[j].row, path[j].col);
+			}
+			
 			free(openSet);
 			free(closedSet);
-			printf("Goal reached!\n");
+			free(path);
+			
 			return;
 		}
 		
@@ -298,7 +329,7 @@ void search (bool map[][COL], Cell start, Cell goal) {
 			}
 	
 			// Neighbor in position (row - 1, col - 1)
-			if (check_position(c.row - 1, c.col -  1) && (is_free(c.row - 1, c.col - 1, map))) {
+			if ((check_position(c.row - 1, c.col -  1)) && (is_free(c.row - 1, c.col - 1, map))) {
 				neighbor.row = c.row - 1;
 				neighbor.col = c.col - 1;
 				tmp[counter] = neighbor;
@@ -316,30 +347,27 @@ void search (bool map[][COL], Cell start, Cell goal) {
 		c.numNeighbors = counter;
 		printf("\nsearch: %d neighbors", c.numNeighbors);
 		
-		
-		
 		/*
 			FINE DELLA EX FUNZIONE FIND_NEIGHBORS()
 		*/
-		
-		
-		
 		
 		int neighborSize = sizeof(*neighbors)/sizeof(neighbors[0]);
 		//printf("\nsearch: %d / %d = %d", sizeof(*neighbors), sizeof(neighbors[0]), neighborSize);
 		//printf("search: %d %d, %d %d, %d %d, %d %d - size: %d - size: %d", neighbors[0].row, neighbors[0].col, neighbors[1].row, neighbors[1].col, neighbors[2].row, neighbors[2].col, neighbors[3].row, neighbors[3].col, sizeof(neighbors), sizeof(neighbors[0]));
 
+		/*
 		// for loop (PROVA) - da eliminare
 		for(int i=0; i<c.numNeighbors; i++){
 			printf("\n %d", neighbors[i].row);
 		}
-
+		*/
+		
 		// Loop for checking every neighbor of the current cell
 		for (int i = 0; i < neighborSize; i++) {
 			Cell neighbor = neighbors[i];
 
-			// Check if the neighbor is already in the closed set. If the negighbor is already in the closed set I do nothing, 
-			// otherwise I evaluate it.
+			// Check if the neighbor is already in the closed set. If the negighbor is already
+			// in the closed set it is evaluated, otherwise nothing is done
 			for (int j = 0; j < closedSetSize; j++) {
 				if (neighbor.row != closedSet[j].row && neighbor.col != closedSet[j].col) {
 					if (j == closedSetSize - 1) {
@@ -361,8 +389,8 @@ void search (bool map[][COL], Cell start, Cell goal) {
 
 									// If I am here the neighbor is already in the open set
 
-									// Check if I have reached the neighbor with a lower cost than before. If yes, I update the value of g,
-									// otherwise I do nothing.
+									// Check if the neighbor has been reached with a lower cost than before. 
+									// If yes, its value of g is updated, otherwise nothing is done 
 									if (tmpG < neighbor.g)
 										neighbor.g = tmpG;
 							}
@@ -372,7 +400,7 @@ void search (bool map[][COL], Cell start, Cell goal) {
 
 								neighbor.g = tmpG;
 
-								// Here the "neighbor" must be added to the open set + realloc
+								// ATTENZIONE: Qui va inserito "neighbor" all'interno dell'open set + la realloc per l'open set
 							}
 						}
 
