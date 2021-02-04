@@ -90,6 +90,8 @@ void search (bool map[][COL], Cell start, Cell goal) {
 	for (int i = 0; i < ROW; i++) {
 		for (int j = 0; j < COL; j++) {
 			int pos = i*ROW + j;
+			arrayCells[pos].row = i;
+			arrayCells[pos].col = j;
 			arrayCells[pos].f = 100000.0;	// very high number
 			arrayCells[pos].g = 100000.0;	// very high number
 			arrayCells[pos].h = 100000.0;	// very high number
@@ -119,6 +121,11 @@ void search (bool map[][COL], Cell start, Cell goal) {
 	path = (Cell*)malloc(sizeof(Cell)*ROW*COL);
 
 	while (openSetSize > 0) {
+		
+		for (int i = 0; i < openSetSize; i++) {
+			printf("Cella open set: %d %d\n", openSet[i].row, openSet[i].col);
+		}
+		
 		int best = 0;	// Initial assumption: the cell having the lowest value of f is in the first position of the open set
 
 		// Scan the open set to find the new best cell
@@ -128,6 +135,7 @@ void search (bool map[][COL], Cell start, Cell goal) {
 		}
 
 		Cell c = openSet[best];		// c is the current cell
+		printf("Cella corrent: %d %d\n", c.row, c.col);
 
 		// If the current cell is the goal point, the algorithm stops
 		if (is_goal(c.row, c.col, goal)) {
@@ -209,11 +217,12 @@ void search (bool map[][COL], Cell start, Cell goal) {
 		// Loop for checking every neighbor of the current cell
 		for (int i = 0; i < numNeighbors; i++) {
 			neighbor = neighbors[i];
-
+			printf(" Neighbor: %d\%d\n", neighbor.row, neighbor.col);
+			
 			// Check if the neighbor is already in the closed set. If the negighbor is already
 			// in the closed set it is evaluated, otherwise nothing is done
 			for (int j = 0; j < closedSetSize; j++) {
-				if (neighbor.row != closedSet[j].row && neighbor.col != closedSet[j].col) {
+				if (neighbor.row != closedSet[j].row || neighbor.col != closedSet[j].col) {
 					if (j == closedSetSize - 1) {
 						
 						// If I am here, the neighbor is NOT in the closed set
@@ -228,7 +237,9 @@ void search (bool map[][COL], Cell start, Cell goal) {
 
 							// Inserisco "neighbor" all'interno dell'open set
 							//openSet = (Cell*)realloc(openSet, (openSetSize+1)*sizeof(Cell));
-							openSet[openSetSize] = neighbor;
+							openSet[openSetSize] = arrayCells[neighbor.row*ROW + neighbor.col];
+							openSet[openSetSize].h = heuristic(neighbor, goal);
+							openSet[openSetSize].f = openSet[openSetSize].g + openSet[openSetSize].h;
 							openSetSize++;
 							printf("\nNow opensetSize=%d\n", openSetSize);
 						}
@@ -242,19 +253,27 @@ void search (bool map[][COL], Cell start, Cell goal) {
 
 										// Check if the neighbor has been reached with a lower cost than before. 
 										// If yes, its value of g is updated, otherwise nothing is done 
-										if (tmpG < neighbor.g)
+										if (tmpG < arrayCells[neighbor.row*ROW + neighbor.col].g) {
 											arrayCells[neighbor.row*ROW + neighbor.col].g = tmpG;
+											openSet[k].g = tmpG;
 											//neighbor.g = tmpG;
+											openSet[k].h = heuristic(neighbor, goal);
+											openSet[k].f = openSet[k].g + openSet[k].h;
+										}
+											
 								}
 								else if (k == openSetSize - 1) {
 									// If I am here, the neighbor is NOT in the open set
 
 									arrayCells[neighbor.row*ROW + neighbor.col].g = tmpG;
-									//neighbor.g = tmpG;
+									neighbor.g = tmpG;
 
 									// Inserisco "neighbor" all'interno dell'open set
 									//openSet = (Cell*)realloc(openSet, (openSetSize+1)*sizeof(Cell));
 									openSet[openSetSize] = neighbor;
+									//openSet[openSetSize] = arrayCells[neighbor.row*ROW + neighbor.col];
+									openSet[openSetSize].h = heuristic(neighbor, goal);
+									openSet[openSetSize].f = openSet[openSetSize].g + openSet[openSetSize].h;
 									openSetSize++;
 									printf("\nNow opensetSize=%d. closedsetSize=%d\n", openSetSize, closedSetSize);
 								}
@@ -262,7 +281,8 @@ void search (bool map[][COL], Cell start, Cell goal) {
 						}
 
 						arrayCells[neighbor.row*ROW + neighbor.col].h = heuristic(neighbor, goal);
-						arrayCells[neighbor.row*ROW + neighbor.col].f = neighbor.g + neighbor.h;
+						arrayCells[neighbor.row*ROW + neighbor.col].f = arrayCells[neighbor.row*ROW + neighbor.col].g + arrayCells[neighbor.row*ROW + neighbor.col].h;
+						printf("\nf: %f\n", arrayCells[neighbor.row*ROW + neighbor.col].f);				
 						arrayCells[neighbor.row*ROW + neighbor.col].parentRow = c.row;
 						arrayCells[neighbor.row*ROW + neighbor.col].parentCol = c.col;
 					}
