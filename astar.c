@@ -5,7 +5,8 @@
 
 #define ROW 7 	// the map must be consistent wrt ROW, COL
 #define COL 7
-#define CONNECTIVITY 8	// it must be 4 or 8
+#define CONNECTIVITY 4	// it must be 4 or 8
+#define ALLOC 5		// allocazione dinamica iniziale dei vettori
 
 typedef struct {
 	int row, col;	// Row and column of a cell
@@ -109,21 +110,31 @@ void search (bool map[][COL], Cell start, Cell goal) {
 	arrayCells[pos_start].parentCol = start.col;
 
 	Cell *openSet;	// Priority queue
-	openSet = (Cell*)malloc(sizeof(Cell)*ROW*COL);
+	int allocOpen = ALLOC;
+	openSet = (Cell*)malloc(sizeof(Cell)*allocOpen);
 	openSet[0] = start;		// The first cell in the open set is the starting cell
 	int openSetSize = 1;
 
 	Cell *closedSet;	// Cells already visited
-	closedSet = (Cell*)malloc(sizeof(Cell)*ROW*COL);
+	int allocClosed = ALLOC;
+	closedSet = (Cell*)malloc(sizeof(Cell)*allocClosed);
 	int closedSetSize = 0;
 	
+	bool foundPath = false;
+	
 	Cell *path;		// Path between the starting point and the goal point
-	path = (Cell*)malloc(sizeof(Cell)*ROW*COL);
+	int allocPath = ALLOC;
+	path = (Cell*)malloc(sizeof(Cell)*allocPath);
+	int pathSize = 0;
+	
+	Cell *bestPath;
+	bestPath = (Cell*)malloc(sizeof(Cell)*allocPath);
+	int bestPathSize = 0;
 
-	while (openSetSize > 0) {
+	while (openSetSize >= 0) {
 		
 		for (int i = 0; i < openSetSize; i++) {
-			printf("Cella open set: %d %d with f=%f, g=%f, h=%f\n", openSet[i].row, openSet[i].col, openSet[i].f, openSet[i].g, openSet[i].h);
+			printf("\nCella open set: %d %d with f=%f, g=%f, h=%f, con genitore: %d %d...", openSet[i].row, openSet[i].col, openSet[i].f, openSet[i].g, openSet[i].h), openSet[i].parentRow, openSet[i].parentCol;
 		}
 		
 		int best = 0;	// Initial assumption: the cell having the lowest value of f is in the first position of the open set
@@ -136,53 +147,98 @@ void search (bool map[][COL], Cell start, Cell goal) {
 		}
 
 		Cell c = openSet[best];		// c is the current cell
-		printf("Cella corrente: %d %d, con genitore: %d %d\n", c.row, c.col, arrayCells[c.row*ROW+c.col].parentRow, arrayCells[c.row*ROW+c.col].parentCol);
+		printf("\n\n>>> Cella corrente: %d %d, con genitore: %d %d\n", c.row, c.col, arrayCells[c.row*ROW+c.col].parentRow, arrayCells[c.row*ROW+c.col].parentCol);
 
-		// If the current cell is the goal point, the algorithm stops
-		if (is_goal(c.row, c.col, goal)) {
+		if (is_goal(c.row, c.col, goal) || openSetSize == 0) {
 			
 			Cell tmp = arrayCells[c.row*ROW+c.col];	// Temporary cell initialized to the current cell (goal point)
-			int pathSize = 0;
 			
-			path[pathSize] = tmp;	// Adding the cell in the first position of the path
-			pathSize++;
-			
-			// These instructions are executed every time a cell has a parent (the loop stops when the starting cell is evaluated, whose parent is the cell itself) 
-			while ((tmp.parentRow != -1) && (tmp.row != tmp.parentRow || tmp.col != tmp.parentCol)) {
-				int pos = tmp.parentRow*ROW + tmp.parentCol; // Variable used to find the position of the cell within arrayCells 
+			if (is_goal(c.row, c.col, goal)){
+						
+				path[0] = tmp;	// Adding the cell in the first position of the path
+				pathSize = 1;
 				
-				// path = (Cell*)realloc(path, (pathSize+1)*sizeof(Cell));
-				path[pathSize] = arrayCells[pos];	// Adding the parent cell to the path
-				tmp = arrayCells[pos];	// Temporary cell value updated to the parent cell 
-				pathSize++;
-				printf("\nPathsize: %d, aggiunta: %d %d con genitore: %d %d\n", pathSize, path[pathSize-1].row, path[pathSize-1].col, path[pathSize-1].parentRow, path[pathSize-1].parentCol);
+				// These instructions are executed every time a cell has a parent (the loop stops when the starting cell is evaluated, whose parent is the cell itself) 
+				while ((tmp.parentRow != -1) && (tmp.row != tmp.parentRow || tmp.col != tmp.parentCol)) {
+					
+					// eventuale riallocazione vettori Path e BestPath
+					if(pathSize >= allocPath){
+						allocPath += ALLOC;
+						path = (Cell*)realloc(path, allocPath*sizeof(Cell));
+						bestPath = (Cell*)realloc(bestPath, allocPath*sizeof(Cell));
+					}
+					
+					int pos = tmp.parentRow*ROW + tmp.parentCol; // Variable used to find the position of the cell within arrayCells 
+					tmp = arrayCells[pos];	// Temporary cell value updated to the parent cell 
+					path[pathSize] = tmp;	// Adding the parent cell to the path
+					pathSize++;
+					printf("\nPathsize: %d, aggiunta: %d %d con genitore: %d %d\n", pathSize, path[pathSize-1].row, path[pathSize-1].col, path[pathSize-1].parentRow, path[pathSize-1].parentCol);
+				}
+				
+				// update the BestPath if it is the first one I've found OR if it is better than the previous one.
+				if(!foundPath || (foundPath && path[0].f < bestPath[0].f)) {
+					for(int i = 0; i < pathSize; i++){
+						bestPath[i] = path[i];
+					}
+					bestPathSize = pathSize;
+				}
+				
+				foundPath = true;
+	
+				// 
+				float pathF = path[0].f;
+				for(int i = 0; i < openSetSize; i++){
+					if (arrayCells[openSet[i].row*ROW + openSet[i].col].f >= pathF){
+						for (int j = i; j < openSetSize; j++){
+							
+							// eventuale riallocazione vettore ClosedSet
+							if(closedSetSize >= allocClosed){
+								allocClosed += ALLOC;
+								closedSet = (Cell*)realloc(closedSet, allocClosed*sizeof(Cell));
+							}		
+							// aggiungo la cella al ClosedSet
+							closedSet[closedSetSize] = openSet[j];
+							closedSetSize++;
+							
+							// rimuovo la cella da OpenSet
+							openSet[j] = openSet[j+1];
+							openSetSize--;
+						}
+					}
+				}
 			}
 			
-			printf("Goal reached! The computed path is:\n");
-			
-			// Print the path
-			for (int j = pathSize-1; j >= 0; j--) {
-				printf("(%d, %d)\n", path[j].row, path[j].col);
+			if (openSetSize == 0){
+				printf("Goal reached! The computed path is:\n");
+				// Print the path
+				for (int j = bestPathSize-1; j >= 0; j--) {
+					printf("(%d, %d)\n", bestPath[j].row, bestPath[j].col);
+				}
+				
+				/* ATTENZIONE: QUELLO TROVATO POTREBBE NON ESSERE IL PERCORSO MIGLIORE! */
+	
+				free(openSet);
+				free(closedSet);
+				free(path);
+				free(bestPath);
+				return;
 			}
 			
-			/* ATTENZIONE: QUELLO TROVATO POTREBBE NON ESSERE IL PERCORSO MIGLIORE! */
-
-			free(openSet);
-			free(closedSet);
-			free(path);
 			
-			return;
 		}
 		
 		// Removing the current cell from the open set
 		for (int i = best; i < openSetSize; i++) {
 			openSet[i] = openSet[i + 1];
 		}
-		// openSet = (Cell*)realloc(openSet, (openSetSize - 1)*sizeof(Cell));
 		openSetSize--;
 
 		// Adding the current cell inside the closed set
-		// closedSet = (Cell*)realloc(closedSet, (closedSetSize + 1)*sizeof(Cell));
+		// Eventuale riallocazione vettore ClosedSet
+		if(closedSetSize >= allocClosed){
+			allocClosed += ALLOC;
+			closedSet = (Cell*)realloc(closedSet, allocClosed*sizeof(Cell));
+		}
 		closedSet[closedSetSize] = c;
 		closedSetSize++;
 		
@@ -210,7 +266,6 @@ void search (bool map[][COL], Cell start, Cell goal) {
 		Cell neighbors[numNeighbors];
 		for (int i=0; i<numNeighbors; i++){
 			neighbors[i] = tmp[i];
-			printf(" Neighbor found: %d %d,\n", neighbors[i].row, neighbors[i].col);
 		}
 		
 		//int neighborSize = sizeof(neighbors)/sizeof(neighbors[0]);
@@ -219,7 +274,7 @@ void search (bool map[][COL], Cell start, Cell goal) {
 		// Loop for checking every neighbor of the current cell
 		for (int i = 0; i < numNeighbors; i++) {
 			neighbor = neighbors[i];
-			printf(" Neighbor: %d %d\n", neighbor.row, neighbor.col);
+			printf("   Neighbor: %d %d ", neighbor.row, neighbor.col);
 			
 			// Check if the neighbor is already in the closed set. If the neighbor is NOT in the closed set
 			// it is evaluated, otherwise nothing is done
@@ -229,7 +284,7 @@ void search (bool map[][COL], Cell start, Cell goal) {
 					// If I am here, the neighbor is NOT in the closed set
 					
 					double tmpG = c.g + heuristic(c, neighbor);
-					printf("distance: %f. ClosedsetSize: %d. OpensetSize: %d\n", tmpG, closedSetSize, openSetSize);
+					//printf("distance: %f. ClosedsetSize: %d. OpensetSize: %d\n", tmpG, closedSetSize, openSetSize);
 					
 					// If I am at the beginning (the cell is the start)
 					if(c.row == start.row && c.col == start.col){
@@ -237,12 +292,16 @@ void search (bool map[][COL], Cell start, Cell goal) {
 						arrayCells[neighbor.row*ROW + neighbor.col].g = tmpG;
 
 						// Inserisco "neighbor" all'interno dell'open set
-						//openSet = (Cell*)realloc(openSet, (openSetSize+1)*sizeof(Cell));
+						// Eventuale riallocazione vettore OpenSet
+						if(openSetSize >= allocOpen){
+							allocOpen += ALLOC;
+							openSet = (Cell*)realloc(openSet, allocOpen*sizeof(Cell));
+						}
 						openSet[openSetSize] = arrayCells[neighbor.row*ROW + neighbor.col];
 						openSet[openSetSize].h = heuristic(neighbor, goal);
 						openSet[openSetSize].f = openSet[openSetSize].g + openSet[openSetSize].h;
 						openSetSize++;
-						printf("\nNow opensetSize=%d\n", openSetSize);
+						printf(", now opensetSize=%d\n", openSetSize);
 					}
 
 					// Check if the neighbor is already in the open set. If it is NOT, it means that a new cell was discovered
@@ -251,7 +310,7 @@ void search (bool map[][COL], Cell start, Cell goal) {
 						for (int k = 0; k < openSetSize; k++) {
 							if (neighbor.row == openSet[k].row && neighbor.col == openSet[k].col) {
 
-									// If I am here, the neighbor is already in the open set
+									// If I am here, the neighbor is ALREADY in the open set
 
 									// Check if the neighbor has been reached with a lower cost than before. 
 									// If yes, its value of g is updated, otherwise nothing is done 
@@ -261,23 +320,31 @@ void search (bool map[][COL], Cell start, Cell goal) {
 										//neighbor.g = tmpG;
 										openSet[k].h = heuristic(neighbor, goal);
 										openSet[k].f = openSet[k].g + openSet[k].h;
+										openSet[k].parentRow = c.row;
+										openSet[k].parentCol = c.col;
+										arrayCells[neighbor.row*ROW+neighbor.col].parentRow = c.row;
+										arrayCells[neighbor.row*ROW+neighbor.col].parentCol = c.col;
 									}
 									k = openSetSize;  // esce dal FOR e valuta un nuovo vicino.	
 							}
 							else if (k == openSetSize - 1) {
-								// If I am here, the neighbor is NOT in the open set
+								// If I am here, the neighbor is NOT in the open set: new cell discovered
 
 								arrayCells[neighbor.row*ROW + neighbor.col].g = tmpG;
 								neighbor.g = tmpG;
 
 								// Inserisco "neighbor" all'interno dell'open set
-								//openSet = (Cell*)realloc(openSet, (openSetSize+1)*sizeof(Cell));
+								// Eventuale riallocazione vettore OpenSet
+								if(openSetSize >= allocOpen){
+									allocOpen += ALLOC;
+									openSet = (Cell*)realloc(openSet, allocOpen*sizeof(Cell));
+								}
 								openSet[openSetSize] = neighbor;
 								//openSet[openSetSize] = arrayCells[neighbor.row*ROW + neighbor.col];
 								openSet[openSetSize].h = heuristic(neighbor, goal);
 								openSet[openSetSize].f = openSet[openSetSize].g + openSet[openSetSize].h;
 								incr = true;
-								printf("\nNow opensetSize=%d. closedsetSize=%d\n", openSetSize, closedSetSize);
+								printf(", now opensetSize=%d. closedsetSize=%d\n", openSetSize+1, closedSetSize);
 							}
 						}
 						if (incr)
@@ -286,12 +353,11 @@ void search (bool map[][COL], Cell start, Cell goal) {
 
 					arrayCells[neighbor.row*ROW + neighbor.col].h = heuristic(neighbor, goal);
 					arrayCells[neighbor.row*ROW + neighbor.col].f = arrayCells[neighbor.row*ROW + neighbor.col].g + arrayCells[neighbor.row*ROW + neighbor.col].h;
-					printf("\nf: %f\n", arrayCells[neighbor.row*ROW + neighbor.col].f);				
 					arrayCells[neighbor.row*ROW + neighbor.col].parentRow = c.row;
 					arrayCells[neighbor.row*ROW + neighbor.col].parentCol = c.col;
 				}
 				else if (neighbor.row == closedSet[j].row && neighbor.col == closedSet[j].col) {
-					j = closedSetSize;
+					j = closedSetSize;		// per uscire dal ciclo e cominciare con un nuovo neighbor
 				}
 			}
 		}
@@ -299,6 +365,8 @@ void search (bool map[][COL], Cell start, Cell goal) {
 	
 	free(openSet);
 	free(closedSet);
+	free(path);
+	free (bestPath);
 
 	return;
 }

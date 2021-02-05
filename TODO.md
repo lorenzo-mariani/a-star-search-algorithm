@@ -1,11 +1,4 @@
-- Controllare malloc
-- Aggiungere realloc per openSet, closedSet e path
-- Verificare che vengano aggiornati i valori delle celle presenti all'interno di arrayCells
+- OK - 4 vettori con malloc (*10?), poi ogni volta che incrementiamo facciamo un controllo su openSetSize e se non c'è spazio facciamo realloc *2.
+- trasformare openSet e closedSet in arrays di interi, contenenti solo riga e colonna (quindi poi modificare la 142: Cell c = openSet[best]).
+- Cercare IL MIGLIOR percorso: bisogna salvare temporaneamente quello trovato e tenere in considerazione il suo costo totale (f) e rimuovere dall'openset tutte le celle con costo maggiore o uguale di f.
 - Trovare possibili sezioni di codice da poter eseguire in parallelo (stando attenti alle variabili condivise)
-- OK - Provare ad implementare la chiamata alla funzione find_neighbors() senza eseguirla all'interno della funzione search()
-- OK - Rimuovere numNeighbors all'interno della struct Cell (se inutile)
-- OK - Aggiungere e stampare percorso da start a goal
-- OK - (RIGA 156-176) -> Modificare arrayCells ad una dimensione + in ogni ciclo for si deve avere arrayCells[i*ROW + j].f = ...
-- OK - Modificare vettore neighbors (con vettore temporaneo ...) - sia nella funzione "search" che nella funzione "find_neighbors"
-- OK - Volendo si può modificare la mappa con dei boolean al posto degli int (quindi modificare anche funzione "is_free")
-- OK - find_neighbors: ritorna direttamente il vettore neighbors[], poi si calcola la dimensione come sizeof(vect)/sizeof(Cell).
