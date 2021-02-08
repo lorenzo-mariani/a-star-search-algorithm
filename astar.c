@@ -425,12 +425,14 @@ int main () {
 	srand(time(NULL));
 	for (int r=0; r<ROW; r++){
 		for (int c=0; c<COL; c++){
-			elem = rand()%2;
-			if (elem == 1)
-				map[r][c] = true;
-			else
+			elem = rand()%5;
+			if (elem == 0){		// 20% is not free
 				map[r][c] = false;
-			printf("%d ", elem);
+				printf("X ");
+			} else {				// 80% is free
+				map[r][c] = true;
+				printf(". ");
+			}
 		}
 		printf("\n");
 	}
