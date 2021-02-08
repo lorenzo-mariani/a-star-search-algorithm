@@ -76,18 +76,23 @@ double heuristic (Cell a, Cell b) {
 
 // Check if a neighbor is valid 
 bool check_a_neighbor(int deltaRow, int deltaCol, int cell[], bool map[][COL]){
-	cell[0] += deltaRow;
-	cell[1] += deltaCol;
-	if((check_position(cell)) && (is_free(cell, map)))
+	int neighbor[2];
+	neighbor[0] = cell[0] + deltaRow;
+	neighbor[1] = cell[1] + deltaCol;
+	if((check_position(neighbor)) && (is_free(neighbor, map)))
 		return true;
 	else
 		return false;
 }
 
+int calculatePos(int cell[]){
+	return cell[0]*ROW + cell[1];
+}
+
 // Function to find the shortest path between the starting point and the goal point
 void search (bool map[][COL], int start[], int goal[]) {
 
-	Cell arrayCells[ROW*COL];	// Array containining the details of each cell
+	Cell arrayCells[ROW*COL];	// Array containining the details of all cells
 	
 	// Initialization of each cell
 	for (int i = 0; i < ROW; i++) {
@@ -104,7 +109,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 	}
 
 	// Initialization of the starting cell
-	int pos_start = start[0]*ROW + start[1];
+	int pos_start = calculatePos(start);
 	arrayCells[pos_start].f = 0.0;
 	arrayCells[pos_start].g = 0.0;
 	arrayCells[pos_start].h = 0.0;
@@ -114,7 +119,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 	int *openSet;	// Priority queue
 	int allocOpen = ALLOC;
 	openSet = (int*)malloc(sizeof(int)*allocOpen);
-	openSet[0] = start[0]*ROW + start[1];		// The first cell in the open set is the starting cell
+	openSet[0] = pos_start;		// The first cell in the open set is the starting cell
 	int openSetSize = 1;
 
 	int *closedSet;	// Cells already visited
@@ -149,7 +154,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 		}
 
 		int c[2] = {arrayCells[openSet[best]].row, arrayCells[openSet[best]].col};		// c is the current cell
-		int posC = c[0]*ROW+c[1];
+		int posC = calculatePos(c);
 		printf("\n\n>>> Cella corrente: %d %d, con genitore: %d %d\n", arrayCells[posC].row, arrayCells[posC].col, arrayCells[posC].parentRow, arrayCells[posC].parentCol);
 
 		if (is_goal(c, goal) || openSetSize == 0) {
@@ -157,7 +162,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 			Cell tmp = arrayCells[posC];	// Temporary cell initialized to the current cell (goal point)
 			
 			if (is_goal(c, goal)){
-						
+				
 				path[0] = tmp.row*ROW + tmp.col;	// Adding the cell in the first position of the path
 				pathSize = 1;
 				
@@ -169,6 +174,32 @@ void search (bool map[][COL], int start[], int goal[]) {
 						allocPath += ALLOC;
 						path = (int*)realloc(path, allocPath*sizeof(int));
 						bestPath = (int*)realloc(bestPath, allocPath*sizeof(int));
+					}
+					
+					// check which is "the best" parent of cell tmp
+					int deltaRow, deltaCol;
+					int bestParent[2] = {tmp.parentRow, tmp.parentCol};
+					int currentParent[2];
+					int cell[2] = {tmp.row, tmp.col};
+					for (deltaRow=-1; deltaRow<=1; deltaRow++){
+						for (deltaCol=-1; deltaCol<=1; deltaCol++){
+							if (deltaRow != 0 || deltaCol != 0){	// this excludes the cell itself
+								if (CONNECTIVITY == 8 || (deltaRow == 0 || deltaCol == 0)){		// this check the connectivity and works consequently
+									if (check_a_neighbor(deltaRow, deltaCol, cell, map)) {
+										currentParent[0] = cell[0]+deltaRow;
+										currentParent[1] = cell[1]+deltaCol;
+										if(arrayCells[currentParent[0]*ROW+currentParent[1]].g < arrayCells[bestParent[0]*ROW+bestParent[1]].g){
+											bestParent[0] = currentParent[0];
+											bestParent[1] = currentParent[1];
+											tmp.parentRow = currentParent[0];
+											tmp.parentCol = currentParent[1];
+											arrayCells[cell[0]*ROW + cell[1]].parentRow = currentParent[0];
+											arrayCells[cell[0]*ROW + cell[1]].parentCol = currentParent[1];
+										}
+									}
+								}
+							}
+						}
 					}
 					
 					int posTmp = tmp.parentRow*ROW + tmp.parentCol; // Variable used to find the position of the cell within arrayCells 
@@ -386,8 +417,8 @@ int main () {
 		{true, true, false, false, true, true, true, false},
 		{true, true, false, false, true, true, true, false},
 		{true, false, false, false, true, true, true, false},
-		{true, true, false, false, true, true, true, false},
-		{true, true, true, true, false, false, true, false},
+		{true, true, false, false, false, true, true, false},
+		{true, true, true, true, false, false, false, false},
 		{true, false, true, true, true, true, true, false}
 	};
 	
