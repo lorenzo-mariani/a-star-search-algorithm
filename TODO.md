@@ -1,4 +1,4 @@
 - OK - 4 vettori con malloc (*10?), poi ogni volta che incrementiamo facciamo un controllo su openSetSize e se non c'è spazio facciamo realloc *2.
 - OK - trasformare openSet e closedSet in arrays di interi, contenenti solo riga e colonna (quindi poi modificare la 142: Cell c = openSet[best]).
-- Cercare IL MIGLIOR percorso: bisogna salvare temporaneamente quello trovato e tenere in considerazione il suo costo totale (f) e rimuovere dall'openset tutte le celle con costo maggiore o uguale di f.
+- OK - Cercare IL MIGLIOR percorso: bisogna salvare temporaneamente quello trovato e tenere in considerazione il suo costo totale (f) e rimuovere dall'openset tutte le celle con costo maggiore o uguale di f.
 - Trovare possibili sezioni di codice da poter eseguire in parallelo (stando attenti alle variabili condivise)
