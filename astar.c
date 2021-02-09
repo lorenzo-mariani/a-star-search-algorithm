@@ -4,8 +4,8 @@
 #include <math.h>
 #include <time.h>
 
-#define ROW 7 	// the map must be consistent wrt ROW, COL
-#define COL 8
+#define ROW 15 	// the map must be consistent wrt ROW, COL
+#define COL 15
 #define CONNECTIVITY 8	// it must be 4 or 8
 #define ALLOC 5		// allocazione dinamica iniziale dei vettori
 
@@ -152,7 +152,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 		// Scan the open set to find the new best cell
 		for (int i = 0; i < openSetSize; i++) {
 			if (arrayCells[openSet[i]].f <= arrayCells[openSet[best]].f)
-				if (arrayCells[openSet[i]].h < arrayCells[openSet[best]].h)
+				if (arrayCells[openSet[i]].h <= arrayCells[openSet[best]].h)
 					best = i;
 		}
 
@@ -191,7 +191,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 									if (check_a_neighbor(deltaRow, deltaCol, cell, map)) {
 										currentParent[0] = cell[0]+deltaRow;
 										currentParent[1] = cell[1]+deltaCol;
-										if(arrayCells[currentParent[0]*ROW+currentParent[1]].g < arrayCells[bestParent[0]*ROW+bestParent[1]].g){
+										if(arrayCells[currentParent[0]*ROW+currentParent[1]].g <= arrayCells[bestParent[0]*ROW+bestParent[1]].g){
 											bestParent[0] = currentParent[0];
 											bestParent[1] = currentParent[1];
 											tmp.parentRow = currentParent[0];
@@ -251,6 +251,25 @@ void search (bool map[][COL], int start[], int goal[]) {
 					// Print the path
 					for (int j = bestPathSize-1; j >= 0; j--) {
 						printf("(%d, %d)\n", arrayCells[bestPath[j]].row, arrayCells[bestPath[j]].col);
+					}
+					// Draw the map
+					printf("\n");
+					srand(time(NULL));
+					for (int r=0; r<ROW; r++){
+						for (int c=0; c<COL; c++){
+							if (!map[r][c]){		// 20% is not free
+								printf("X ");
+							} else {				// 80% is free
+								bool ispath = false;
+								for (int b=0; b<bestPathSize; b++){
+									if(arrayCells[r*ROW+c].row == arrayCells[bestPath[b]].row && arrayCells[r*ROW+c].col == arrayCells[bestPath[b]].col)
+										ispath = true;
+								}
+								if(ispath) printf("O ");
+								else printf(". ");
+							}
+						}
+						printf("\n");
 					}
 				}
 				else {
@@ -335,7 +354,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 							allocOpen += ALLOC;
 							openSet = (int*)realloc(openSet, allocOpen*sizeof(int));
 						}
-						openSet[openSetSize] = neighbor[0]*ROW + neighbor[1];
+						openSet[openSetSize] = posN;
 						arrayCells[openSet[openSetSize]].h = heuristic(arrayCells[posN], arrayCells[posG]);
 						arrayCells[openSet[openSetSize]].f = arrayCells[openSet[openSetSize]].g + arrayCells[openSet[openSetSize]].h;
 						openSetSize++;
@@ -426,10 +445,10 @@ int main () {
 	for (int r=0; r<ROW; r++){
 		for (int c=0; c<COL; c++){
 			elem = rand()%5;
-			if (elem == 0){		// 20% is not free
+			if (elem == 0){		// 10% is not free
 				map[r][c] = false;
 				printf("X ");
-			} else {				// 80% is free
+			} else {				// 90% is free
 				map[r][c] = true;
 				printf(". ");
 			}
