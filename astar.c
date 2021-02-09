@@ -4,8 +4,8 @@
 #include <math.h>
 #include <time.h>
 
-#define ROW 15 	// the map must be consistent wrt ROW, COL
-#define COL 15
+#define ROW 7 	// the map must be consistent wrt ROW, COL
+#define COL 7
 #define CONNECTIVITY 8	// it must be 4 or 8
 #define ALLOC 5		// allocazione dinamica iniziale dei vettori
 
@@ -44,12 +44,12 @@ bool is_free (int cell[], bool map[][COL]) {
 // Check the correctness of the start and goal cells
 bool check (int start[], int goal[], bool map[][COL]) {
 	if (!(check_position(start) && check_position(goal))) {
-		printf("Start or goal point out of the map\n");
+		printf("Start or goal point is out of the map\n");
 		return false;
 	}
 
 	if (!(is_free(start, map) && is_free(goal, map))) {
-		printf("Start or goal point not free\n");
+		printf("Start or goal point is not free\n");
 		return false;
 	}
 
@@ -109,7 +109,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 		}
 	}
 
-	int posG = goal[0]*ROW + goal[1];
+	int posG = calculatePos(goal);
 	
 	// Initialization of the starting cell
 	int posS = calculatePos(start);
@@ -147,21 +147,31 @@ void search (bool map[][COL], int start[], int goal[]) {
 			printf("\nCella open set: %d %d with f=%f, g=%f, h=%f, con genitore: %d %d...", arrayCells[openSet[i]].row, arrayCells[openSet[i]].col, arrayCells[openSet[i]].f, arrayCells[openSet[i]].g, arrayCells[openSet[i]].h), arrayCells[openSet[i]].parentRow, arrayCells[openSet[i]].parentCol;
 		}
 		
+		int c[2];
 		int best = 0;	// Initial assumption: the cell having the lowest value of f is in the first position of the open set
-
+		bool isThereBest = false;
 		// Scan the open set to find the new best cell
 		for (int i = 0; i < openSetSize; i++) {
-			if (arrayCells[openSet[i]].f <= arrayCells[openSet[best]].f)
-				if (arrayCells[openSet[i]].h <= arrayCells[openSet[best]].h)
+			if (arrayCells[openSet[i]].f <= arrayCells[openSet[best]].f) {
+				if (arrayCells[openSet[i]].h <= arrayCells[openSet[best]].h){
 					best = i;
+					isThereBest = true;
+				}
+			}
 		}
-
-		int c[2] = {arrayCells[openSet[best]].row, arrayCells[openSet[best]].col};		// c is the current cell
+		c[0] = arrayCells[openSet[best]].row;
+		c[1] = arrayCells[openSet[best]].col;		// c is the current cell
+		if(!isThereBest){
+			c[0] = arrayCells[posG].row;
+			c[1] = arrayCells[posG].col;
+			openSetSize = 0;
+		}
+		
 		int posC = calculatePos(c);
 		printf("\n\n>>> Cella corrente: %d %d, con genitore: %d %d\n", arrayCells[posC].row, arrayCells[posC].col, arrayCells[posC].parentRow, arrayCells[posC].parentCol);
-
+		
 		if (is_goal(c, goal) || openSetSize == 0) {
-			
+			printf("\nHello\n");
 			Cell tmp = arrayCells[posC];	// Temporary cell initialized to the current cell (goal point)
 			
 			if (is_goal(c, goal)){
@@ -220,6 +230,14 @@ void search (bool map[][COL], int start[], int goal[]) {
 					bestPathSize = pathSize;
 				}
 				
+				// deletes unuseful cells from the openset		--> MA QUESTO VA FATTO AD OGNI GIRO, NON SOLO IN IF(IS_GOAL)!!!
+				for (int i=0; i<openSetSize; i++){
+					if (arrayCells[openSet[i]].f >= arrayCells[bestPath[0]].f){
+						openSet[i] = openSet[i + 1];
+					}
+					openSetSize--;
+				}
+				
 				foundPath = true;
 	
 				// 
@@ -257,9 +275,9 @@ void search (bool map[][COL], int start[], int goal[]) {
 					srand(time(NULL));
 					for (int r=0; r<ROW; r++){
 						for (int c=0; c<COL; c++){
-							if (!map[r][c]){		// 20% is not free
+							if (!map[r][c]){
 								printf("X ");
-							} else {				// 80% is free
+							} else {
 								bool ispath = false;
 								for (int b=0; b<bestPathSize; b++){
 									if(arrayCells[r*ROW+c].row == arrayCells[bestPath[b]].row && arrayCells[r*ROW+c].col == arrayCells[bestPath[b]].col)
@@ -297,7 +315,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 			allocClosed += ALLOC;
 			closedSet = (int*)realloc(closedSet, allocClosed*sizeof(int));
 		}
-		closedSet[closedSetSize] = c[0]*ROW+c[1];
+		closedSet[closedSetSize] = posC;
 		closedSetSize++;
 		
 		int numNeighbors = 0;
