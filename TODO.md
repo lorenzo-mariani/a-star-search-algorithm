@@ -5,7 +5,10 @@
 --> ATTENZIONE: a volte non bisogna fare il check "fin quando opensetsize>0", ma piuttosto "fin quando nessuna cella dell'openset ha F minore di quella del goal raggiunto". ved. line 233.
 
 
---> CASO DI ERRORE: 
+--> ATTENZIONE: ho chiuso il goal dietro un muro (ved. funzione fillMap())
+
+
+--> CASO DI ERRORE 2: 
 
 . . . . . . .
 . . . . X . .
