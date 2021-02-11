@@ -17,6 +17,25 @@ typedef struct {
 	int parentRow, parentCol;	// Row and column of the parent cell 
 } Cell;
 
+// fills the map at the beginning, with random values
+void fillMap(bool map[][COL]){
+	int elem;
+	srand(time(NULL));
+	for (int r=0; r<ROW; r++){
+		for (int c=0; c<COL; c++){
+			elem = rand()%5;
+			if (elem == 0){		// 20% is not free
+				map[r][c] = false;
+				printf("X ");
+			} else {				// 80% is free
+				map[r][c] = true;
+				printf(". ");
+			}
+		}
+		printf("\n");
+	}
+}
+
 // Check if the current cell is inside the map
 bool check_position (int cell[]) {
 	if (cell[0] >= 0 && cell[0] < ROW && cell[1] >= 0 && cell[1] < COL)
@@ -90,12 +109,8 @@ int calculatePos(int cell[]){
 	return cell[0]*ROW + cell[1];
 }
 
-// Function to find the shortest path between the starting point and the goal point
-void search (bool map[][COL], int start[], int goal[]) {
-
-	Cell arrayCells[ROW*COL];	// Array containining the details of all cells
-	
-	// Initialization of each cell
+void initCells(Cell arrayCells[], int start[], int posS, int goal[]){
+	// Initialization of every cell
 	for (int i = 0; i < ROW; i++) {
 		for (int j = 0; j < COL; j++) {
 			int pos = i*ROW + j;
@@ -108,17 +123,55 @@ void search (bool map[][COL], int start[], int goal[]) {
 			arrayCells[pos].parentCol = -1;	// invalid position
 		}
 	}
-
-	int posG = calculatePos(goal);
 	
 	// Initialization of the starting cell
-	int posS = calculatePos(start);
 	arrayCells[posS].f = 0.0;
 	arrayCells[posS].g = 0.0;
 	arrayCells[posS].h = 0.0;
 	arrayCells[posS].parentRow = start[0];
 	arrayCells[posS].parentCol = start[1];
+}
 
+void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[][COL]){
+	printf("\nGoal reached! The computed path is:\n");
+	// Print the path
+	for (int j = bestPathSize-1; j >= 0; j--) {
+		printf("(%d, %d)\n", arrayCells[bestPath[j]].row, arrayCells[bestPath[j]].col);
+	}
+	// Draw the map
+	printf("\n");
+	srand(time(NULL));
+	for (int r=0; r<ROW; r++){
+		for (int c=0; c<COL; c++){
+			if (!map[r][c]){
+				printf("X ");
+			} else {
+				bool ispath = false;
+				for (int b=0; b<bestPathSize; b++){
+					int cellPos = r*ROW + c;
+					if(arrayCells[cellPos].row == arrayCells[bestPath[b]].row && arrayCells[cellPos].col == arrayCells[bestPath[b]].col)
+						ispath = true;
+				}
+				if(ispath) printf("O ");
+				else printf(". ");
+			}
+		}
+		printf("\n");
+	}
+}
+
+// Function to find the shortest path between the starting point and the goal point
+void search (bool map[][COL], int start[], int goal[]) {
+
+	Cell arrayCells[ROW*COL];	// Array containining the details of all cells
+	
+	// Initialization of each cell
+	int posS = calculatePos(start);
+	int posG = calculatePos(goal);
+	initCells(arrayCells, start, posS, goal);
+	
+	// Initialization of 4 vectors
+	
 	int *openSet;	// Priority queue
 	int allocOpen = ALLOC;
 	openSet = (int*)malloc(sizeof(int)*allocOpen);
@@ -147,9 +200,10 @@ void search (bool map[][COL], int start[], int goal[]) {
 			printf("\nCella open set: %d %d with f=%f, g=%f, h=%f, con genitore: %d %d...", arrayCells[openSet[i]].row, arrayCells[openSet[i]].col, arrayCells[openSet[i]].f, arrayCells[openSet[i]].g, arrayCells[openSet[i]].h), arrayCells[openSet[i]].parentRow, arrayCells[openSet[i]].parentCol;
 		}
 		
-		int c[2];
+		int c[2];		// c is the current cell
 		int best = 0;	// Initial assumption: the cell having the lowest value of f is in the first position of the open set
 		bool isThereBest = false;
+		
 		// Scan the open set to find the new best cell
 		for (int i = 0; i < openSetSize; i++) {
 			if (arrayCells[openSet[i]].f <= arrayCells[openSet[best]].f) {
@@ -159,8 +213,10 @@ void search (bool map[][COL], int start[], int goal[]) {
 				}
 			}
 		}
+		
 		c[0] = arrayCells[openSet[best]].row;
-		c[1] = arrayCells[openSet[best]].col;		// c is the current cell
+		c[1] = arrayCells[openSet[best]].col;
+		
 		if(!isThereBest){
 			c[0] = arrayCells[posG].row;
 			c[1] = arrayCells[posG].col;
@@ -171,16 +227,16 @@ void search (bool map[][COL], int start[], int goal[]) {
 		printf("\n\n>>> Cella corrente: %d %d, con genitore: %d %d\n", arrayCells[posC].row, arrayCells[posC].col, arrayCells[posC].parentRow, arrayCells[posC].parentCol);
 		
 		if (is_goal(c, goal) || openSetSize == 0) {
-			printf("\nHello\n");
-			Cell tmp = arrayCells[posC];	// Temporary cell initialized to the current cell (goal point)
+			int thisCell[2] = {arrayCells[posC].row, arrayCells[posC].col};
+			int thisCellPos = calculatePos(thisCell);
 			
 			if (is_goal(c, goal)){
 				
-				path[0] = tmp.row*ROW + tmp.col;	// Adding the cell in the first position of the path
+				path[0] = posC;
 				pathSize = 1;
 				
 				// These instructions are executed every time a cell has a parent (the loop stops when the starting cell is evaluated, whose parent is the cell itself) 
-				while ((tmp.parentRow != -1) && (tmp.row != tmp.parentRow || tmp.col != tmp.parentCol)) {
+				while ((arrayCells[thisCellPos].parentRow != -1) && (arrayCells[thisCellPos].row != arrayCells[thisCellPos].parentRow || arrayCells[thisCellPos].col != arrayCells[thisCellPos].parentCol)) {
 					
 					// eventuale riallocazione vettori Path e BestPath
 					if(pathSize >= allocPath){
@@ -189,25 +245,25 @@ void search (bool map[][COL], int start[], int goal[]) {
 						bestPath = (int*)realloc(bestPath, allocPath*sizeof(int));
 					}
 					
-					// check which is "the best" parent of cell tmp
 					int deltaRow, deltaCol;
-					int bestParent[2] = {tmp.parentRow, tmp.parentCol};
+					int bestParent[2] = {arrayCells[thisCellPos].parentRow, arrayCells[thisCellPos].parentCol};
+					int bpPos = calculatePos(bestParent);
 					int currentParent[2];
-					int cell[2] = {tmp.row, tmp.col};
+					int cpPos;
 					for (deltaRow=-1; deltaRow<=1; deltaRow++){
 						for (deltaCol=-1; deltaCol<=1; deltaCol++){
 							if (deltaRow != 0 || deltaCol != 0){	// this excludes the cell itself
-								if (CONNECTIVITY == 8 || (deltaRow == 0 || deltaCol == 0)){		// this check the connectivity and works consequently
-									if (check_a_neighbor(deltaRow, deltaCol, cell, map)) {
-										currentParent[0] = cell[0]+deltaRow;
-										currentParent[1] = cell[1]+deltaCol;
-										if(arrayCells[currentParent[0]*ROW+currentParent[1]].g <= arrayCells[bestParent[0]*ROW+bestParent[1]].g){
+								if (CONNECTIVITY == 8 || (deltaRow == 0 || deltaCol == 0)){		// this checks the connectivity and works consequently
+									if (check_a_neighbor(deltaRow, deltaCol, thisCell, map)) {
+										currentParent[0] = thisCell[0]+deltaRow;
+										currentParent[1] = thisCell[1]+deltaCol;
+										cpPos = calculatePos(currentParent);
+										if(arrayCells[cpPos].g <= arrayCells[bpPos].g){
 											bestParent[0] = currentParent[0];
 											bestParent[1] = currentParent[1];
-											tmp.parentRow = currentParent[0];
-											tmp.parentCol = currentParent[1];
-											arrayCells[cell[0]*ROW + cell[1]].parentRow = currentParent[0];
-											arrayCells[cell[0]*ROW + cell[1]].parentCol = currentParent[1];
+											bpPos = calculatePos(bestParent);
+											arrayCells[thisCellPos].parentRow = currentParent[0];
+											arrayCells[thisCellPos].parentCol = currentParent[1];
 										}
 									}
 								}
@@ -215,11 +271,14 @@ void search (bool map[][COL], int start[], int goal[]) {
 						}
 					}
 					
-					int posTmp = tmp.parentRow*ROW + tmp.parentCol; // Variable used to find the position of the cell within arrayCells 
-					tmp = arrayCells[posTmp];	// Temporary cell value updated to the parent cell 
-					path[pathSize] = posTmp;	// Adding the parent cell to the path
+					// Temporary cell value updated to the parent cell
+					thisCell[0] = bestParent[0];
+					thisCell[1] = bestParent[1];
+					thisCellPos = bpPos;
+					
+					path[pathSize] = bpPos;	// Adding the parent cell to the path
 					pathSize++;
-					printf("\nPathsize: %d, aggiunta: %d %d con genitore: %d %d\n", pathSize, arrayCells[posTmp].row, arrayCells[posTmp].col, arrayCells[posTmp].parentRow, arrayCells[posTmp].parentCol);
+					printf("\nPathsize: %d, aggiunta: %d %d con genitore: %d %d\n", pathSize, arrayCells[thisCellPos].row, arrayCells[thisCellPos].col, arrayCells[thisCellPos].parentRow, arrayCells[thisCellPos].parentCol);
 				}
 				
 				// update the BestPath if it is the first path I've found OR if the new path is better than the previous one.
@@ -265,30 +324,7 @@ void search (bool map[][COL], int start[], int goal[]) {
 			
 			if (openSetSize == 0){
 				if(foundPath){
-					printf("\nGoal reached! The computed path is:\n");
-					// Print the path
-					for (int j = bestPathSize-1; j >= 0; j--) {
-						printf("(%d, %d)\n", arrayCells[bestPath[j]].row, arrayCells[bestPath[j]].col);
-					}
-					// Draw the map
-					printf("\n");
-					srand(time(NULL));
-					for (int r=0; r<ROW; r++){
-						for (int c=0; c<COL; c++){
-							if (!map[r][c]){
-								printf("X ");
-							} else {
-								bool ispath = false;
-								for (int b=0; b<bestPathSize; b++){
-									if(arrayCells[r*ROW+c].row == arrayCells[bestPath[b]].row && arrayCells[r*ROW+c].col == arrayCells[bestPath[b]].col)
-										ispath = true;
-								}
-								if(ispath) printf("O ");
-								else printf(". ");
-							}
-						}
-						printf("\n");
-					}
+					printPath(arrayCells, bestPath, bestPathSize, map);
 				}
 				else {
 					printf("\nThe goal is not reachable.");
@@ -457,22 +493,8 @@ int main () {
 	};
 	*/
 	
-	bool map[ROW][COL];
-	int elem;
-	srand(time(NULL));
-	for (int r=0; r<ROW; r++){
-		for (int c=0; c<COL; c++){
-			elem = rand()%5;
-			if (elem == 0){		// 10% is not free
-				map[r][c] = false;
-				printf("X ");
-			} else {				// 90% is free
-				map[r][c] = true;
-				printf(". ");
-			}
-		}
-		printf("\n");
-	}
+	bool map[ROW][COL];	
+	fillMap(map);
 	
 	int start[] = {6, 2};
 	int goal[] = {1, 6};
@@ -485,6 +507,5 @@ int main () {
 	else {
 		return 0;
 	}
-
 	return 1;
 }
