@@ -5,7 +5,7 @@
 #include <time.h>
 
 #define ROW 7 	// the map must be consistent wrt ROW, COL
-#define COL 7
+#define COL 7	// COl MUST BE EQUAL TO ROW
 #define CONNECTIVITY 8	// it must be 4 or 8
 #define ALLOC 5		// allocazione dinamica iniziale dei vettori
 
@@ -35,7 +35,7 @@ void fillMap(bool map[][COL]){
 		printf("\n");
 	}
 	
-	map[0][5] = false;
+	map[0][5] = false;		// obstacles
 	map[1][5] = false;
 	map[2][5] = false;
 	map[2][6] = false;
@@ -115,7 +115,7 @@ int calculatePos(int cell[]){
 	return cell[0]*ROW + cell[1];
 }
 
-void initCells(Cell arrayCells[], int start[], int posS, int goal[]){
+void initCells(Cell arrayCells[], int start[], int goal[]){
 	// Initialization of every cell
 	for (int i = 0; i < ROW; i++) {
 		for (int j = 0; j < COL; j++) {
@@ -131,6 +131,7 @@ void initCells(Cell arrayCells[], int start[], int posS, int goal[]){
 	}
 	
 	// Initialization of the starting cell
+	int posS = calculatePos(start);
 	arrayCells[posS].f = 0.0;
 	arrayCells[posS].g = 0.0;
 	arrayCells[posS].h = 0.0;
@@ -208,12 +209,12 @@ void freeAll(int openSet[], int closedSet[], int path[], int bestPath[]){
 void search (bool map[][COL], int start[], int goal[]) {
 
 	Cell arrayCells[ROW*COL];	// Array containining the details of all cells
-	
+
 	// Initialization of each cell
 	int posS = calculatePos(start);
 	int posG = calculatePos(goal);
-	initCells(arrayCells, start, posS, goal);
-	
+	initCells(arrayCells, start, goal);
+
 	// Initialization of 4 vectors
 	
 	int *openSet;	// Priority queue
@@ -239,21 +240,32 @@ void search (bool map[][COL], int start[], int goal[]) {
 	int bestPathSize = 0;
 
 	while (1) {
-		
+
 		for (int i = 0; i < openSetSize; i++) {
-			printf("\nCella open set: %d %d with f=%f, g=%f, h=%f, con genitore: %d %d...", arrayCells[openSet[i]].row, arrayCells[openSet[i]].col, arrayCells[openSet[i]].f, arrayCells[openSet[i]].g, arrayCells[openSet[i]].h), arrayCells[openSet[i]].parentRow, arrayCells[openSet[i]].parentCol;
+				printf("ok, controllato");
+			printf("\nCella open set: %d %d with f=%f, g=%f, h=%f ...", arrayCells[openSet[i]].row, arrayCells[openSet[i]].col, arrayCells[openSet[i]].f, arrayCells[openSet[i]].g, arrayCells[openSet[i]].h);
+		
 		}
 		
 		int c[2];		// c is the current cell
 		bool isThereBest = false;
 		int best = 0;	// Initial assumption: the cell having the lowest value of f is in the first position of the open set
-		
+		bool isNew;
 		// Scan the open set to find the new best cell
 		for (int i = 0; i < openSetSize; i++) {
+			isNew = true;
 			if (arrayCells[openSet[i]].f <= arrayCells[openSet[best]].f) {
 				if (arrayCells[openSet[i]].h <= arrayCells[openSet[best]].h){
-					best = i;
-					isThereBest = true;
+					for (int j = 0; j < closedSetSize; j++){
+						if (arrayCells[openSet[i]].row == arrayCells[closedSet[j]].row && arrayCells[openSet[i]].col == arrayCells[closedSet[j]].col){
+							isNew = false;
+						}
+					}
+					if (isNew) {
+						best = i;
+						isThereBest = true;
+					}
+					
 				}
 			}
 		}
@@ -532,7 +544,8 @@ int main () {
 	
 	int start[] = {6, 2};
 	int goal[] = {1, 6};
-	//int goal[] = {6, 3};
+	/*int start[] = {2, 0};
+	int goal[] = {0, 2};*/
 	
 	if (check(start, goal, map)) {
 		// Execute the algorithm
