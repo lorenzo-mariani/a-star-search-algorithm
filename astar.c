@@ -4,11 +4,11 @@
 #include <math.h>
 #include <time.h>
 
-#define ROW 20 	// the map must be consistent wrt ROW, COL
-#define COL 20	// COL MUST BE EQUAL TO ROW
-#define CONNECTIVITY 4	// it must be 4 or 8
+#define ROW 40 	// the map must be consistent wrt ROW, COL
+#define COL 40	// COL MUST BE EQUAL TO ROW
+#define CONNECTIVITY 8	// it must be 4 or 8
 #define ALLOC 5		// allocazione dinamica iniziale dei vettori
-#define OBSTACLES 20	// obstacles percentage
+#define OBSTACLES 30	// obstacles percentage
 
 typedef struct {
 	int row, col;	// Row and column of a cell
@@ -137,7 +137,7 @@ void initCells(Cell arrayCells[], int start[], int goal[]){
 
 // At the end of the analysis, prints the best path found
 void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[][COL]){
-	printf("\nGoal reached through %d cells. Total distance: %f. The computed path is:\n", bestPathSize, arrayCells[bestPath[0]].f);
+	printf("\nGoal reached through %d cells. Path length %f over air distance %f (x %f). The computed path is:\n", bestPathSize, arrayCells[bestPath[0]].f, heuristic(arrayCells[bestPath[bestPathSize-1]], arrayCells[bestPath[0]]), arrayCells[bestPath[0]].f / heuristic(arrayCells[bestPath[bestPathSize-1]], arrayCells[bestPath[0]]));
 	// Print the list of cells in the path
 	for (int j = bestPathSize-1; j >= 0; j--) {
 		printf("(%d, %d)\n", arrayCells[bestPath[j]].row, arrayCells[bestPath[j]].col);
