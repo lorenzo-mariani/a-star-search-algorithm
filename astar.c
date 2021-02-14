@@ -4,12 +4,12 @@
 #include <math.h>
 #include <time.h>
 
-//#define ROW 25 	// the map must be consistent wrt ROW, COL
-//#define COL 25	// COL MUST BE EQUAL TO ROW
-#define DIM 40		// must be non-negative
+//#define ROW 25 		// the map must be consistent wrt ROW, COL
+//#define COL 25		// COL MUST BE EQUAL TO ROW
+#define DIM 50			// must be non-negative
 #define CONNECTIVITY 8	// it must be 4 or 8
-#define ALLOC 5		// allocazione dinamica iniziale dei vettori
-#define OBSTACLES 100	// obstacles percentage
+#define ALLOC 5			// allocazione dinamica iniziale dei vettori
+#define OBSTACLES 30	// obstacles percentage
 
 typedef struct {
 	int row, col;	// Row and column of a cell
@@ -42,7 +42,8 @@ bool checkDefine(){
 void fillMap(bool map[][DIM]){
 	int elem;
 	int obst = 100/OBSTACLES;	// 1 over obst is an obstacle
-	srand(time(NULL));
+	//srand(time(NULL));	// CASUALE
+	srand(0);				// NON CASUALE
 	printf("\n\n");
 	for (int r=0; r<DIM; r++){
 		for (int c=0; c<DIM; c++){
