@@ -4,12 +4,10 @@
 #include <math.h>
 #include <time.h>
 
-//#define ROW 25 		// the map must be consistent wrt ROW, COL
-//#define COL 25		// COL MUST BE EQUAL TO ROW
-#define DIM 50			// must be non-negative
+#define DIM 20			// must be non-negative
 #define CONNECTIVITY 8	// it must be 4 or 8
 #define ALLOC 5			// allocazione dinamica iniziale dei vettori
-#define OBSTACLES 30	// obstacles percentage
+#define OBSTACLES 35	// obstacles percentage
 
 typedef struct {
 	int row, col;	// Row and column of a cell
@@ -41,22 +39,34 @@ bool checkDefine(){
 // fills the map at the beginning, with random values
 void fillMap(bool map[][DIM]){
 	int elem;
-	int obst = 100/OBSTACLES;	// 1 over obst is an obstacle
-	//srand(time(NULL));	// CASUALE
-	srand(0);				// NON CASUALE
-	printf("\n\n");
-	for (int r=0; r<DIM; r++){
-		for (int c=0; c<DIM; c++){
-			elem = rand()%obst;
-			if (elem == 0){
-				map[r][c] = false;		// not free
-				printf("X ");
-			} else {
+	int obstPercent = OBSTACLES;		// to avoid division by 0
+	if(obstPercent != 0){
+		int obst = 100/obstPercent;	// 1 over obst is an obstacle
+		srand(time(NULL));	// CASUAL
+		//srand(0);				// NOT CASUAL
+		printf("\n\n");
+		for (int r=0; r<DIM; r++){
+			for (int c=0; c<DIM; c++){
+				elem = rand()%obst;		// "elem" is a pseudo-random integer in [0; obst]
+				if (elem == 0){
+					map[r][c] = false;		// not free
+					printf("X ");
+				} else {
+					map[r][c] = true;		// free
+					printf(". ");
+				}
+			}
+			printf("\n");
+		}
+	} else {
+		printf("\n\n");
+		for (int r=0; r<DIM; r++){
+			for (int c=0; c<DIM; c++){
 				map[r][c] = true;		// free
 				printf(". ");
 			}
+			printf("\n");
 		}
-		printf("\n");
 	}
 	printf("\n\n");
 }
@@ -129,12 +139,13 @@ bool check_a_neighbor(int deltaRow, int deltaCol, int cell[], bool map[][DIM]){
 		return false;
 }
 
+// Returns the position of the cell in the vector arrayCells[] used in the search() function
 int calculatePos(int cell[]){
 	return cell[0]*DIM + cell[1];
 }
 
+// Initialization of every cell
 void initCells(Cell arrayCells[], int start[], int goal[]){
-	// Initialization of every cell
 	for (int i = 0; i < DIM; i++) {
 		for (int j = 0; j < DIM; j++) {
 			int pos = i*DIM + j;
@@ -186,6 +197,7 @@ void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[][D
 	printf("\n\n");
 }
 
+// Evaluates the best parent (in terms of g) for the cell thisCell[].
 int chooseBestParent(Cell arrayCells[], bool map[][DIM], int thisCell[], int bestParent[]){
 	int thisCellPos = calculatePos(thisCell);
 	int deltaRow, deltaCol;
@@ -200,7 +212,7 @@ int chooseBestParent(Cell arrayCells[], bool map[][DIM], int thisCell[], int bes
 						currentParent[0] = thisCell[0]+deltaRow;
 						currentParent[1] = thisCell[1]+deltaCol;
 						cpPos = calculatePos(currentParent);
-						if(arrayCells[cpPos].g <= arrayCells[bpPos].g){
+						if(arrayCells[cpPos].g < arrayCells[bpPos].g){
 							bestParent[0] = currentParent[0];
 							bestParent[1] = currentParent[1];
 							bpPos = calculatePos(bestParent);
@@ -215,6 +227,7 @@ int chooseBestParent(Cell arrayCells[], bool map[][DIM], int thisCell[], int bes
 	return bpPos;
 }
 
+// Free all the dynamic vectors we used.
 void freeAll(int openSet[], int closedSet[], int path[], int bestPath[]){
 	free(openSet);
 	free(closedSet);
@@ -223,6 +236,7 @@ void freeAll(int openSet[], int closedSet[], int path[], int bestPath[]){
 	printf("\nOk, memory is free.");
 }
 
+// Explicits the result of the search.
 void endSearch(bool foundPath, Cell arrayCells[], int bestPath[], int bestPathSize, bool map[][DIM]) {
 	if(foundPath) {
 		printPath(arrayCells, bestPath, bestPathSize, map);
@@ -278,24 +292,25 @@ void search (bool map[][DIM], int start[], int goal[]) {
 		// Scan the open set to find the new best cell
 		for (int i = 0; i < openSetSize; i++) {
 			isNew = true;
-			if (arrayCells[openSet[i]].f <= arrayCells[openSet[best]].f && arrayCells[openSet[i]].h < arrayCells[openSet[best]].h) {
+			//if (arrayCells[openSet[i]].f <= arrayCells[openSet[best]].f && arrayCells[openSet[i]].h < arrayCells[openSet[best]].h) {		// SICURI CHE SERVA CONSIDERARE H ???
+			if (arrayCells[openSet[i]].f <= arrayCells[openSet[best]].f) {
 				if ((foundPath && arrayCells[openSet[i]].f <= arrayCells[bestPath[0]].f) || !foundPath){
-					for (int j = 0; j < closedSetSize; j++){
-						if (arrayCells[openSet[i]].row == arrayCells[closedSet[j]].row && arrayCells[openSet[i]].col == arrayCells[closedSet[j]].col){
+					/*for (int j = 0; j < closedSetSize; j++){
+						if (arrayCells[openSet[i]].row == arrayCells[closedSet[j]].row && arrayCells[openSet[i]].col == arrayCells[closedSet[j]].col){		// MA A COSA SERVE ???
 							isNew = false;
 							j = closedSetSize;		// exit the loop
 						}
 					}
 					if (isNew) {
-						best = i;
+						best = i;*/
 						isThereBest = true;
-					}
+					/*}*/
 				}
 			}
 		}
 				
 		if((foundPath && !isThereBest) || openSetSize == 0){
-			// funzione finale
+			// final function
 			endSearch(foundPath, arrayCells, bestPath, bestPathSize, map);
 			freeAll(openSet, closedSet, path, bestPath);
 			return;
@@ -305,18 +320,19 @@ void search (bool map[][DIM], int start[], int goal[]) {
 		c[1] = arrayCells[openSet[best]].col;
 		
 		int posC = calculatePos(c);
-		printf("\n>>> Cella corrente: (%d %d)", arrayCells[posC].row, arrayCells[posC].col);
+		printf("\n>>> Cella corrente: (%d %d)", arrayCells[posC].row, arrayCells[posC].col);	// 	c[0], c[1]
 		
 		if(posC == posS){
 			arrayCells[posS].h = heuristic(arrayCells[posS], arrayCells[posG]);
 			arrayCells[posS].f = arrayCells[posS].h;
 		}
 		
+		// if the cell corresponds to the goal
 		if (is_goal(c, goal)) {
-			int thisCell[2] = {arrayCells[posC].row, arrayCells[posC].col};
-			int thisCellPos = calculatePos(thisCell);
+			int thisCell[2] = {c[0], c[1]};
+			int thisCellPos = posC;
 							
-			path[0] = posC;
+			path[0] = thisCellPos;
 			pathSize = 1;
 			
 			// These instructions are executed every time a cell has a parent (the loop stops when the starting cell is evaluated, whose parent is the cell itself) 
@@ -333,7 +349,7 @@ void search (bool map[][DIM], int start[], int goal[]) {
 				int bestParent[2] = {arrayCells[thisCellPos].parentRow, arrayCells[thisCellPos].parentCol};
 				int bpPos = chooseBestParent(arrayCells, map, thisCell, bestParent);
 				
-				// thisCell updated to the best parent
+				// thisCell is updated to the best parent
 				thisCellPos = bpPos;
 				bestParent[0] = arrayCells[bpPos].row;
 				bestParent[1] = arrayCells[bpPos].col;
@@ -395,10 +411,10 @@ void search (bool map[][DIM], int start[], int goal[]) {
 		closedSetSize++;
 		
 		int numNeighbors = 0;
-		int neighbor[2];
-		int tmp[CONNECTIVITY];
+		int neighbor[2];			// row and column of a neighbor
+		int tmp[CONNECTIVITY];		// it goes to contain all the possible neighbors of c
 		
-		// For cell "c", each possible neighbor (from high-left to low-right) is checked.
+		// For cell "c", each possible neighbor is checked.
 		int deltaRow, deltaCol;
 		for (deltaRow=-1; deltaRow<=1; deltaRow++){
 			for (deltaCol=-1; deltaCol<=1; deltaCol++){
@@ -420,7 +436,7 @@ void search (bool map[][DIM], int start[], int goal[]) {
 			neighbors[i] = tmp[i];
 		}
 		
-		bool aNewNeighbor = false;
+		bool aNewNeighbor = false;		// serve solo nel pezzo di codice finale, che è commentato!!
 		
 		// Loop for checking every neighbor of the current cell
 		for (int i = 0; i < numNeighbors; i++) {
@@ -436,14 +452,12 @@ void search (bool map[][DIM], int start[], int goal[]) {
 					
 					// If I am here, the neighbor is NOT in the closed set
 					
-					aNewNeighbor = true;
+					aNewNeighbor = true;		// serve solo nel pezzo di codice finale, che è commentato!!
 					
 					double tmpG = arrayCells[posC].g + heuristic(arrayCells[posC], arrayCells[posN]);
 					//printf("distance: %f. ClosedsetSize: %d. OpensetSize: %d\n", tmpG, closedSetSize, openSetSize);
 					
 					if(c[0] == start[0] && c[1] == start[1]){ 	// If I am at the beginning (the cell is the start)
-
-						arrayCells[posN].g = tmpG;
 
 						// Eventuale riallocazione vettore OpenSet
 						if(openSetSize >= allocOpen){
@@ -452,12 +466,13 @@ void search (bool map[][DIM], int start[], int goal[]) {
 						}
 						// Inserisco "neighbor" all'interno dell'open set
 						openSet[openSetSize] = posN;
-						arrayCells[openSet[openSetSize]].h = heuristic(arrayCells[posN], arrayCells[posG]);
-						arrayCells[openSet[openSetSize]].f = arrayCells[openSet[openSetSize]].g + arrayCells[openSet[openSetSize]].h;
+						arrayCells[posN].g = tmpG;
+						/*arrayCells[posN].h = heuristic(arrayCells[posN], arrayCells[posG]);
+						arrayCells[posN].f = arrayCells[posN].g + arrayCells[posN].h;*/
 						openSetSize++;
 						//printf(", ADDED\n");
-					} else {
-						bool incr = false;
+					} else {		// general case (not the cell start)
+						bool newOpenSetCell = false;
 						// Check if the neighbor is already in the open set. If it is NOT, it means that a new cell was discovered
 						for (int k = 0; k < openSetSize; k++) {
 							if (neighbor[0] == arrayCells[openSet[k]].row && neighbor[1] == arrayCells[openSet[k]].col) {
@@ -467,18 +482,19 @@ void search (bool map[][DIM], int start[], int goal[]) {
 									// If yes, its value of g is updated, otherwise nothing is done 
 									if (tmpG < arrayCells[posN].g) {
 										arrayCells[posN].g = tmpG;
-										arrayCells[openSet[k]].h = heuristic(arrayCells[posN], arrayCells[posG]);
-										arrayCells[openSet[k]].f = arrayCells[openSet[k]].g + arrayCells[openSet[k]].h;
-										arrayCells[posN].parentRow = c[0];
-										arrayCells[posN].parentCol = c[1];
+										/*arrayCells[posN].h = heuristic(arrayCells[posN], arrayCells[posG]);
+										arrayCells[posN].f = arrayCells[posN].g + arrayCells[posN].h;*/
+										/*arrayCells[posN].parentRow = c[0];
+										arrayCells[posN].parentCol = c[1];*/
 									}
-									k = openSetSize;  // esce dal FOR e valuta un nuovo vicino.
+									k = openSetSize;  // esce dal FOR
 							} else if (k == openSetSize - 1) {
 								// If I am here, the neighbor is NOT in the open set: new cell discovered
-								incr = true;
+								newOpenSetCell = true;
 							}
 						}
-						if (incr || openSetSize == 0){
+						
+						if (newOpenSetCell || openSetSize == 0){
 							
 							// Eventuale riallocazione vettore OpenSet
 							if(openSetSize >= allocOpen){
@@ -489,8 +505,8 @@ void search (bool map[][DIM], int start[], int goal[]) {
 							// Inserisco "neighbor" all'interno dell'open set
 							arrayCells[posN].g = tmpG;
 							openSet[openSetSize] = posN;
-							arrayCells[openSet[openSetSize]].h = heuristic(arrayCells[posN], arrayCells[posG]);
-							arrayCells[openSet[openSetSize]].f = arrayCells[openSet[openSetSize]].g + arrayCells[openSet[openSetSize]].h;
+							/*arrayCells[posN].h = heuristic(arrayCells[posN], arrayCells[posG]);
+							arrayCells[posN].f = arrayCells[posN].g + arrayCells[posN].h;*/
 							//printf(", ADDED\n");
 							openSetSize++;
 						}
@@ -525,8 +541,8 @@ int main () {
 	bool map[DIM][DIM];	
 	fillMap(map);
 	
-	int start[] = {0, 0};
-	int goal[] = {DIM-1, DIM-1};
+	int goal[] = {0, 0};
+	int start[] = {DIM-1, DIM-1};
 	
 	if (check(start, goal, map)) {
 		// Execute the algorithm
