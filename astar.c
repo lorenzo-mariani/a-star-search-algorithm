@@ -4,7 +4,7 @@
 #include <math.h>
 #include <time.h>
 
-#define DIM 40				// side dimension of the map
+#define DIM 30000				// side dimension of the map
 #define CONNECTIVITY 4		// must be 4 or 8
 #define OBSTACLES 0		// obstacles percentage
 #define ALLOC 25			// vectors' initial dynamic allocation 
@@ -166,7 +166,6 @@ int calculatePos(int cell[]){
 
 // Initialization of every cell
 void initCells(Cell arrayCells[], int start[], int goal[]){	
-	printf("Filling arrayCells... ");
 	for (int i = 0; i < DIM; i++) {
 		for (int j = 0; j < DIM; j++) {
 			int pos = i*DIM + j;
@@ -186,8 +185,6 @@ void initCells(Cell arrayCells[], int start[], int goal[]){
 	arrayCells[posS].h = 0.0;
 	arrayCells[posS].parentRow = start[0];
 	arrayCells[posS].parentCol = start[1];
-	
-	printf("ArrayCells filled.\n");
 }
 
 // At the end of the analysis, prints the best path found
@@ -273,6 +270,7 @@ void endSearch(bool foundPath, Cell arrayCells[], int bestPath[], int bestPathSi
 
 // Function to find the shortest path between the starting point and the goal point
 void search (bool map[], int start[], int goal[]) {	
+	printf("Filling arrayCells... ");
 	Cell *arrayCells;
 	arrayCells = (Cell *)malloc(DIM*DIM*sizeof(Cell));
 	if(arrayCells == NULL) {
@@ -281,9 +279,11 @@ void search (bool map[], int start[], int goal[]) {
 	}
 
 	// Initialization of each cell
+	initCells(arrayCells, start, goal);
+	printf("ArrayCells filled.\n");
+	
 	int posS = calculatePos(start);
 	int posG = calculatePos(goal);
-	initCells(arrayCells, start, goal);
 
 	// Initialization of 4 vectors
 	
