@@ -4,10 +4,12 @@
 #include <math.h>
 #include <time.h>
 
-#define DIM 224			// must be > 0
+#define DIM 500			// must be > 0
 #define CONNECTIVITY 4	// it must be 4 or 8
 #define ALLOC 25			// allocazione dinamica iniziale dei vettori
 #define OBSTACLES 20	// obstacles percentage
+
+bool map[DIM][DIM];
 
 typedef struct {
 	int row, col;	// Row and column of a cell
@@ -16,6 +18,8 @@ typedef struct {
 	double h;	// Estimated distance between the current cell and the goal point
 	int parentRow, parentCol;	// Row and column of the parent cell 
 } Cell;
+
+Cell arrayCells[DIM*DIM];	// Array containining the details of all cells
 
 // check the values defined at the beginning
 bool checkDefine(){
@@ -37,7 +41,7 @@ bool checkDefine(){
 }
 
 // fills the map at the beginning, with random values
-void fillMap(bool map[][DIM]){
+void fillMap(){
 	int elem;
 	int obstPercent = OBSTACLES;		// to avoid division by 0
 	if(obstPercent != 0){
@@ -88,7 +92,7 @@ bool is_goal (int start[], int goal[]) {
 }
 
 // Check if the current cell is free or if there is an obstacle
-bool is_free (int cell[], bool map[][DIM]) {
+bool is_free (int cell[]) {
 	if (map[cell[0]][cell[1]] == true)
 		return true;
 	else
@@ -96,13 +100,13 @@ bool is_free (int cell[], bool map[][DIM]) {
 }
 
 // Check the correctness of the start and goal cells
-bool check (int start[], int goal[], bool map[][DIM]) {
+bool check (int start[], int goal[]) {
 	if (!(check_position(start) && check_position(goal))) {
 		printf("Start or goal point is out of the map\n");
 		return false;
 	}
 
-	if (!(is_free(start, map) && is_free(goal, map))) {
+	if (!(is_free(start) && is_free(goal))) {
 		printf("Start or goal point is not free\n");
 		return false;
 	}
@@ -129,11 +133,11 @@ double heuristic (Cell a, Cell b) {
 }
 
 // Check if a neighbor is valid and free 
-bool check_a_neighbor(int deltaRow, int deltaCol, int cell[], bool map[][DIM]){
+bool check_a_neighbor(int deltaRow, int deltaCol, int cell[]){
 	int neighbor[2];
 	neighbor[0] = cell[0] + deltaRow;
 	neighbor[1] = cell[1] + deltaCol;
-	if((check_position(neighbor)) && (is_free(neighbor, map)))
+	if((check_position(neighbor)) && (is_free(neighbor)))
 		return true;
 	else
 		return false;
@@ -145,7 +149,7 @@ int calculatePos(int cell[]){
 }
 
 // Initialization of every cell
-void initCells(Cell arrayCells[], int start[], int goal[]){	
+void initCells(int start[], int goal[]){	
 	for (int i = 0; i < DIM; i++) {
 		for (int j = 0; j < DIM; j++) {
 			int pos = i*DIM + j;
@@ -169,7 +173,7 @@ void initCells(Cell arrayCells[], int start[], int goal[]){
 }
 
 // At the end of the analysis, prints the best path found
-void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[][DIM]){
+void printPath(int bestPath[], int bestPathSize){
 	printf("\nGoal reached through %d cells. Path length %f over minimum distance %f (+ %.2f \%%).\n\nThe computed path is: ", bestPathSize, arrayCells[bestPath[0]].f, heuristic(arrayCells[bestPath[bestPathSize-1]], arrayCells[bestPath[0]]), ((arrayCells[bestPath[0]].f / heuristic(arrayCells[bestPath[bestPathSize-1]], arrayCells[bestPath[0]])) - 1)*100);
 	// Print the list of cells in the path
 	for (int j = bestPathSize-1; j >= 0; j--) {
@@ -198,7 +202,7 @@ void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[][D
 }
 
 // Evaluates the best parent (in terms of g) for the cell thisCell[].
-int chooseBestParent(Cell arrayCells[], bool map[][DIM], int thisCell[], int bestParent[]){
+int chooseBestParent( int thisCell[], int bestParent[]){
 	int thisCellPos = calculatePos(thisCell);
 	int deltaRow, deltaCol;
 	int bpPos = calculatePos(bestParent);					
@@ -208,7 +212,7 @@ int chooseBestParent(Cell arrayCells[], bool map[][DIM], int thisCell[], int bes
 		for (deltaCol=-1; deltaCol<=1; deltaCol++){
 			if (deltaRow != 0 || deltaCol != 0){	// this excludes the cell itself
 				if (CONNECTIVITY == 8 || (deltaRow == 0 || deltaCol == 0)){		// this checks the connectivity and works consequently
-					if (check_a_neighbor(deltaRow, deltaCol, thisCell, map)) {
+					if (check_a_neighbor(deltaRow, deltaCol, thisCell)) {
 						currentParent[0] = thisCell[0]+deltaRow;
 						currentParent[1] = thisCell[1]+deltaCol;
 						cpPos = calculatePos(currentParent);
@@ -237,22 +241,22 @@ void freeAll(int openSet[], int closedSet[], int path[], int bestPath[]){
 }
 
 // Explicits the result of the search.
-void endSearch(bool foundPath, Cell arrayCells[], int bestPath[], int bestPathSize, bool map[][DIM]) {
+void endSearch(bool foundPath, int bestPath[], int bestPathSize) {
 	if(foundPath) {
-		printPath(arrayCells, bestPath, bestPathSize, map);
+		printPath(bestPath, bestPathSize);
 	} else {
 		printf("\n\nThe goal is not reachable.\n");
 	}
 }
 
 // Function to find the shortest path between the starting point and the goal point
-void search (bool map[][DIM], int start[], int goal[]) {	
-	Cell arrayCells[DIM*DIM];	// Array containining the details of all cells
+void search (int start[], int goal[]) {	
+	
 
 	// Initialization of each cell
 	int posS = calculatePos(start);
 	int posG = calculatePos(goal);
-	initCells(arrayCells, start, goal);
+	initCells(start, goal);
 
 	// Initialization of 4 vectors
 	
@@ -311,7 +315,7 @@ void search (bool map[][DIM], int start[], int goal[]) {
 				
 		if((foundPath && !isThereBest) || openSetSize == 0){
 			// final functions are called
-			endSearch(foundPath, arrayCells, bestPath, bestPathSize, map);
+			endSearch(foundPath, bestPath, bestPathSize);
 			freeAll(openSet, closedSet, path, bestPath);
 			return;
 		}
@@ -321,7 +325,7 @@ void search (bool map[][DIM], int start[], int goal[]) {
 		
 		int posC = calculatePos(c);
 		
-		printf("\n>>> Cella corrente: (%d %d)", arrayCells[posC].row, arrayCells[posC].col);	// 	c[0], c[1]
+		//printf("\n>>> Cella corrente: (%d %d)", arrayCells[posC].row, arrayCells[posC].col);	// 	c[0], c[1]
 		
 		if(posC == posS){
 			arrayCells[posS].h = heuristic(arrayCells[posS], arrayCells[posG]);
@@ -347,7 +351,7 @@ void search (bool map[][DIM], int start[], int goal[]) {
 				
 				// choose the best parent for thisCell
 				int bestParent[2] = {arrayCells[thisCellPos].parentRow, arrayCells[thisCellPos].parentCol};
-				int bpPos = chooseBestParent(arrayCells, map, thisCell, bestParent);
+				int bpPos = chooseBestParent(thisCell, bestParent);
 				
 				// thisCell is updated to the best parent
 				thisCellPos = bpPos;
@@ -420,7 +424,7 @@ void search (bool map[][DIM], int start[], int goal[]) {
 			for (deltaCol=-1; deltaCol<=1; deltaCol++){
 				if (deltaRow != 0 || deltaCol != 0){	// this excludes the cell itself
 					if (CONNECTIVITY == 8 || (deltaRow == 0 || deltaCol == 0)){		// this check the connectivity and works consequently
-						if (check_a_neighbor(deltaRow, deltaCol, c, map)) {
+						if (check_a_neighbor(deltaRow, deltaCol, c)) {
 							neighbor[0] = c[0] + deltaRow;
 							neighbor[1] = c[1] + deltaCol;
 							tmp[numNeighbors] = neighbor[0]*DIM + neighbor[1];
@@ -538,15 +542,14 @@ int main () {
 		return 0;
 	}
 
-	bool map[DIM][DIM];	
-	fillMap(map);
+	fillMap();
 	
 	int start[] = {3, 3};
 	int goal[] = {DIM-3, DIM-3};
 	
-	if (check(start, goal, map)) {
+	if (check(start, goal)) {
 		// Execute the algorithm
-		search(map, start, goal);
+		search(start, goal);
 	}
 	else {
 		return 0;
