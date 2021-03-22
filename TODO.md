@@ -1,10 +1,8 @@
 - Trovare possibili sezioni di codice da poter eseguire in parallelo (stando attenti alle variabili condivise)
 
 Problemi trovati:
-- (RISOLTO) Inizialmente start e goal sono rispettivamente in posizione (0,0) e (ROW-1, COL-1). Se questi valori vengono cambiati può capitare che con la generazione randomica un ostacolo si trovi sopra start/goal. O lo lasciamo cosi per far vedere che prima di eseguire l'algoritmo facciamo un controllo per verificare che start/goal siano liberi, oppure possiamo fare in modo che con la generazione randomica gli ostacoli non si possano trovare nella posizione di start/goal (tenendo comunque in considerazione il primo punto di questa lista, ovvero se ho il 100% di ostacoli allora anche su start/goal ci devono essere ostacoli).
-- (RISOLTO) Con OBSTACLES = 0 e CONN = 4, il percorso non è ottimale!
-- (RISOLTO) initCells() : usare numeri molto alti oppure una variabile per indicare il primo aggiornamento di f,g,h? Stessa cosa per i parents della cella start --> si potrebbe usare NULL ? CERCARE DI OTTIMIZZARE LA FUNZIONE!
-- (RISOLTO) RIGA 292: se f < f, oppure se ( f == f && h < h )
+- initCells(): si potrebbero inserire dei NULL nei valori di f, g, h, parentRow e parentCol? Da valutare se convenga o no!
+- La rappresentazione di celle libere e ostacoli cambia tra la mappa stampata da printOnlyMap() (X e .) e la mappa stampata da printPath() (" " e -); si può usare solamente una notazione per evitare di fare confusione? Per esempio usando (" " e -) in entrambe le situazioni
 
 CONSIDERAZIONI:
 - seme costante per rand() in modo da poter fare considerazioni sulle performance usando sempre la stessa mappa
