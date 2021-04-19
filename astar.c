@@ -4,9 +4,9 @@
 #include <math.h>
 #include <time.h>
 
-#define DIM 30000				// lateral dimension of the map
-#define CONNECTIVITY 4			// degree of freedom - it can be 4 or 8
-#define OBSTACLES 0				// percentage of obstacles
+#define DIM 100					// lateral dimension of the map
+#define CONNECTIVITY 8			// degree of freedom - it can be 4 or 8
+#define OBSTACLES 20				// percentage of obstacles
 #define ALLOC 25				// dimension used for dynamic vector allocation 
 #define SEED 0					// seed for the rand() function
 
@@ -44,8 +44,8 @@ void fillMap(bool map[], int start[], int goal[]){
 	printf("Filling map... ");
 	if(obstPercent != 0){
 		int obst = 10000/obstPercent;	// obst = 10000/obstPercent is an obstacle
-		srand(time(NULL));				// casual
-		//srand(SEED);					// not casual
+		//srand(time(NULL));				// casual
+		srand(SEED);					// not casual
 		for (int r=0; r<DIM; r++){
 			for (int c=0; c<DIM; c++){
 				elem = rand()%obst;				// pseudo-random integer in the range [0, obst]
@@ -183,25 +183,20 @@ void initCells(Cell arrayCells[], int start[], int goal[]){
 // print of the best path found
 void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[]){
 	printf("\nGoal reached through %d intermedium cells. Path length %f over minimum distance %f (+ %.2f \%%).", bestPathSize-2, arrayCells[bestPath[0]].f, distance(arrayCells[bestPath[bestPathSize-1]], arrayCells[bestPath[0]]), ((arrayCells[bestPath[0]].f / distance(arrayCells[bestPath[bestPathSize-1]], arrayCells[bestPath[0]])) - 1)*100);
-	// Print the list of cells in the path
-	/*printf("\n\nThe computed path is: ");
-	for (int j = bestPathSize-1; j >= 0; j--) {
-		printf("(%d, %d) ", arrayCells[bestPath[j]].row, arrayCells[bestPath[j]].col);
-	}*/
 	// print of the map with the indication of the path found
 	printf("\n\n\n");	
-	for (int r=0; r<DIM; r++){
+	/*for (int r=0; r<DIM; r++){
 		for (int c=0; c<DIM; c++){
 			int cellPos = r*DIM + c;
 			if (!map[cellPos]){
 				printf("- ");			// obstacle
 			} else {
-				bool ispath = false;
+				bool isPath = false;
 				for (int b=0; b<bestPathSize; b++){
 					if(arrayCells[cellPos].row == arrayCells[bestPath[b]].row && arrayCells[cellPos].col == arrayCells[bestPath[b]].col)
-						ispath = true;
+						isPath = true;
 				}
-				if(ispath)
+				if(isPath)
 					printf("O ");		// point of the path
 				else
 					printf("  ");		// free
@@ -209,7 +204,32 @@ void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[]){
 		}
 		printf("\n");
 	}
-	printf("\n\n");
+	printf("\n\n");*/
+	
+	char *row = malloc(2*DIM+1);
+	int r,c;
+	for (r=0; r<DIM; r++){
+		for (c=0; c<DIM; c+=1){
+			int cellPos = r*DIM + c;
+			if (!map[cellPos]){
+				row[2*c] = 'X';
+			} else {
+				bool isPath = false;
+				for (int b=0; b<bestPathSize; b++){
+					if(arrayCells[cellPos].row == arrayCells[bestPath[b]].row && arrayCells[cellPos].col == arrayCells[bestPath[b]].col)
+						isPath = true;
+				}
+				if(isPath)
+					row[2*c] = 'O';		// point of the path
+				else
+					row[2*c] = ' ';		// free
+			}
+			row[2*c+1] = ' ';
+		}
+		row[2*DIM] = '\0';
+		printf("%s\n", row);
+	}
+	free(row);
 }
 
 // evaluation of the best parent (in terms of g) for the cell thisCell[].
@@ -527,8 +547,8 @@ int main () {
 		return 0;
 	}
 	
-	int start[] = {3, 3};
-	int goal[] = {DIM-3, DIM-3};
+	int start[] = {0, 0};
+	int goal[] = {DIM-1, DIM-1};
 	
 	fillMap(map, start, goal);
 	
