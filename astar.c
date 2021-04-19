@@ -4,9 +4,9 @@
 #include <math.h>
 #include <time.h>
 
-#define DIM 30000				// side dimension of the map
-#define CONNECTIVITY 4		// must be 4 or 8
-#define OBSTACLES 0		// obstacles percentage
+#define DIM 50				// side dimension of the map
+#define CONNECTIVITY 8		// must be 4 or 8
+#define OBSTACLES 55		// obstacles percentage
 #define ALLOC 25			// vectors' initial dynamic allocation 
 #define SEED 0				// seed for the rand() function
 
@@ -44,8 +44,8 @@ void fillMap(bool map[], int start[], int goal[]){
 	printf("Filling map... ");
 	if(obstPercent != 0){
 		int obst = 10000/obstPercent;		// Meaning: 100 over obst is an obstacle
-		srand(time(NULL));				// CASUAL
-		//srand(SEED);					// NOT CASUAL
+		//srand(time(NULL));				// CASUAL
+		srand(SEED);					// NOT CASUAL
 		for (int r=0; r<DIM; r++){
 			for (int c=0; c<DIM; c++){
 				elem = rand()%obst;				// "elem" is a pseudo-random integer in [0; obst]
@@ -450,7 +450,7 @@ void search (bool map[], int start[], int goal[]) {
 			neighbors[i] = tmp[i];
 		}
 		
-		bool aNewNeighbor = false;		// serve solo nel pezzo di codice finale, che è commentato!!
+		bool aNewNeighbor = false;		// serve solo nel pezzo di codice finale, che ï¿½ commentato!!
 		
 		// Loop for checking every neighbor of the current cell
 		for (int i = 0; i < numNeighbors; i++) {
