@@ -4,11 +4,11 @@
 #include <math.h>
 #include <time.h>
 
-#define DIM 5000					// lateral dimension of the map
+#define DIM 30					// lateral dimension of the map
 #define CONNECTIVITY 8			// degree of freedom - it can be 4 or 8
-#define OBSTACLES 60			// percentage of obstacles
+#define OBSTACLES 20			// percentage of obstacles
 #define ALLOC 25				// dimension used for dynamic vector allocation 
-#define ARR_MAX 10				// HALF of maximum dimension of an array to be printed
+#define ARR_MAX 2000			// HALF of maximum dimension of an array to be printed
 #define SEED 0					// seed for the rand() function
 
 typedef struct {
@@ -27,11 +27,14 @@ bool checkDefine(){
 	} else if (CONNECTIVITY != 4 && CONNECTIVITY != 8){
 		printf("\n%d is not a valid connectivity.\n", CONNECTIVITY);
 		return false;
+	} else if (OBSTACLES < 0 || OBSTACLES > 100){
+		printf("\n%d is not a valid obstacle percentage.\n", OBSTACLES);
+		return false;
 	} else if (ALLOC <= 0){
 		printf("\n%d is not a valid value for reallocation.\n", ALLOC);
 		return false;
-	} else if (OBSTACLES < 0 || OBSTACLES > 100){
-		printf("\n%d is not a valid obstacle percentage.\n", OBSTACLES);
+	} else if (ARR_MAX <= 0){
+		printf("\n%d is not a valid string size for the printing.\n", ARR_MAX);
 		return false;
 	} else {
 		return true;
@@ -83,27 +86,8 @@ void printOnlyMap(bool map[], int posStart, int posGoal){
 	int remain = DIM % ARR_MAX;
 	int r,c,n;
 	char *row = malloc(/*num_chars*/ 2*ARR_MAX);
-	printf("\n\n");
-	/*for (r=0; r<DIM; r++){
-		for (c=0; c<DIM; c++){
-			int posCell = r*DIM+c;
-			if (map[posCell]){
-				if (posCell == posStart)
-					row[2*c] = 'S';		// start point
-				else if (posCell == posGoal)
-					row[2*c] = 'G';		// goal point
-				else
-					row[2*c] = ' ';		// free cell
-			} else {
-				row[2*c] = 'X';			// obstacle
-			}
-			row[2*c+1] = ' ';
-		}
-		row[num_chars-1] = '\0';
-		printf("%s\n", row);
-	}
-	free(row);*/
 	
+	printf("\n\n");
 	for (r=0; r<DIM; r++){
 		for (n=0; n<ripet; n++){
 			for (c=0; c<ARR_MAX; c++){
@@ -141,63 +125,66 @@ void printOnlyMap(bool map[], int posStart, int posGoal){
 		printf("%s\n", row);
 	}
 	free(row);
-	
-	
 	printf("\n\n");
 }
 
 // print of the best path found
 void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[]){
 	printf("\nGoal reached through %d intermedium cells. Path length %f over minimum distance %f (+ %.2f \%%).", bestPathSize-2, arrayCells[bestPath[0]].f, distance(arrayCells[bestPath[bestPathSize-1]], arrayCells[bestPath[0]]), ((arrayCells[bestPath[0]].f / distance(arrayCells[bestPath[bestPathSize-1]], arrayCells[bestPath[0]])) - 1)*100);
-	// print of the map with the indication of the path found
-	printf("\n\n\n");	
-	
-	/*for (int r=0; r<DIM; r++){
-		for (int c=0; c<DIM; c++){
-			int cellPos = r*DIM + c;
-			if (!map[cellPos]){
-				printf("- ");			// obstacle
-			} else {
-				bool isPath = false;
-				for (int b=0; b<bestPathSize; b++){
-					if(arrayCells[cellPos].row == arrayCells[bestPath[b]].row && arrayCells[cellPos].col == arrayCells[bestPath[b]].col)
-						isPath = true;
-				}
-				if(isPath)
-					printf("O ");		// point of the path
-				else
-					printf("  ");		// free
-			}
-		}
-		printf("\n");
-	}
-	printf("\n\n");*/
-	
-	char *row = malloc(2*DIM+1);
-	int r,c;
+	int ripet = DIM / ARR_MAX;
+	int remain = DIM % ARR_MAX;
+	int r,c,n;
+	char *row = malloc(/*num_chars*/ 2*ARR_MAX);
+
+	printf("\n\n");
 	for (r=0; r<DIM; r++){
-		for (c=0; c<DIM; c+=1){
-			int cellPos = r*DIM + c;
-			if (!map[cellPos]){
+		for (n=0; n<ripet; n++){
+			for (c=0; c<ARR_MAX; c+=1){
+				int posCell = r*DIM+n*ARR_MAX+c;
+				if (!map[posCell]){
+					row[2*c] = 'X';
+				} else {
+					bool isPath = false;
+					for (int b=0; b<bestPathSize; b++){
+						if(arrayCells[posCell].row == arrayCells[bestPath[b]].row && arrayCells[posCell].col == arrayCells[bestPath[b]].col)
+							isPath = true;
+					}
+					if(isPath){
+						if(arrayCells[posCell].row == arrayCells[bestPath[0]].row && arrayCells[posCell].col == arrayCells[bestPath[0]].col){
+							row[2*c] = 'G';		// goal point
+						} else if(arrayCells[posCell].row == arrayCells[bestPath[bestPathSize-1]].row && arrayCells[posCell].col == arrayCells[bestPath[bestPathSize-1]].col){
+							row[2*c] = 'S';		// starting point
+						} else row[2*c] = 'O';		// point of the path
+					} else
+						row[2*c] = '.';		// free
+				}
+				row[2*c+1] = ' ';
+			}
+			row[2*ARR_MAX] = '\0';
+			printf("%s", row);
+		}
+		for (c=0; c<remain; c++){
+			int posCell = r*DIM+n*ARR_MAX+c;
+			if (!map[posCell]){
 				row[2*c] = 'X';
 			} else {
 				bool isPath = false;
 				for (int b=0; b<bestPathSize; b++){
-					if(arrayCells[cellPos].row == arrayCells[bestPath[b]].row && arrayCells[cellPos].col == arrayCells[bestPath[b]].col)
+					if(arrayCells[posCell].row == arrayCells[bestPath[b]].row && arrayCells[posCell].col == arrayCells[bestPath[b]].col)
 						isPath = true;
 				}
 				if(isPath){
-					if(arrayCells[cellPos].row == arrayCells[bestPath[0]].row && arrayCells[cellPos].col == arrayCells[bestPath[0]].col){
+					if(arrayCells[posCell].row == arrayCells[bestPath[0]].row && arrayCells[posCell].col == arrayCells[bestPath[0]].col){
 						row[2*c] = 'G';		// goal point
-					} else if(arrayCells[cellPos].row == arrayCells[bestPath[bestPathSize-1]].row && arrayCells[cellPos].col == arrayCells[bestPath[bestPathSize-1]].col){
+					} else if(arrayCells[posCell].row == arrayCells[bestPath[bestPathSize-1]].row && arrayCells[posCell].col == arrayCells[bestPath[bestPathSize-1]].col){
 						row[2*c] = 'S';		// starting point
 					} else row[2*c] = 'O';		// point of the path
 				} else
-					row[2*c] = ' ';		// free
+					row[2*c] = '.';		// free
 			}
 			row[2*c+1] = ' ';
 		}
-		row[2*DIM] = '\0';
+		row[2*remain] = '\0';
 		printf("%s\n", row);
 	}
 	free(row);
