@@ -73,6 +73,7 @@ void fillMap(bool map[], int start[], int goal[]){
 		map[goal[0]*DIM+goal[1]] = true;
 		
 	} else {							// no obstacles
+		libere = DIM*DIM;
 		for (int r=0; r<DIM; r++){
 			for (int c=0; c<DIM; c++){
 				map[r*DIM+c] = true;		// free
