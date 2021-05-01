@@ -5,10 +5,10 @@
 #include <time.h>
 #include <omp.h>
 
-#define DIM 10					// lateral dimension of the map
+#define DIM 11					// lateral dimension of the map
 #define CONNECTIVITY 8			// degree of freedom - it can be 4 or 8
-#define OBSTACLES 0				// percentage of obstacles
-#define ALLOC 25				// dimension used for dynamic vector allocation 
+#define OBSTACLES 20				// percentage of obstacles
+#define ALLOC 10				// dimension used for dynamic vector allocation 
 #define ARR_MAX 2000			// HALF of maximum dimension of an array to be printed
 #define SEED 0					// seed for the rand() function
 
@@ -408,13 +408,32 @@ void search (bool map[], int start[], int goal[]) {
 		c[0] = arrayCells[openSet[best]].row;
 		c[1] = arrayCells[openSet[best]].col;
 		counter++;
-		printf("\nCella corrente -> %d,%d", c[0], c[1]);
+		//printf("\nCella corrente -> %d,%d", c[0], c[1]);
 		
 		int posC = calculatePos(c);		
 		if(posC == posS){
 			arrayCells[posS].h = distance(arrayCells[posS], arrayCells[posG]);
 			arrayCells[posS].f = arrayCells[posS].h;
 		}
+		
+		
+		// remove the current cell from the open set
+		for (int i = best; i < openSetSize; i++) {
+			openSet[i] = openSet[i+1];
+		}
+		openSetSize--;
+		
+		// add the current cell inside the closed set + possible reallocation of ClosedSet vector
+		if(closedSetSize >= allocClosed){
+			allocClosed += ALLOC;
+			closedSet = (int*)realloc(closedSet, allocClosed*sizeof(int));
+		}
+		
+		//if(posC != posG) {
+			closedSet[closedSetSize] = posC;
+			closedSetSize++;
+		//}
+		
 		
 		if (is_goal(c, goal)) {					// check whether the current cell is the goal point or not
 			int thisCell[2] = {c[0], c[1]};		// thisCell = c
@@ -471,10 +490,10 @@ void search (bool map[], int start[], int goal[]) {
 					closedSet[closedSetSize] = openSet[i];
 					closedSetSize++;
 					
-					printf ("\nClosed set [1] -> ");
+					/*printf ("\nClosed set [1] -> ");
 					for(int cs=0; cs<closedSetSize; cs++){
 						printf("%d,%d ", arrayCells[closedSet[cs]].row, arrayCells[closedSet[cs]].col);
-					}
+					}*/
 					
 					for (int j = i; j < openSetSize; j++){					
 						// remove the cell from the OpenSet
@@ -487,30 +506,15 @@ void search (bool map[], int start[], int goal[]) {
 		}
 		
 				
-		// remove the current cell from the open set
-		for (int i = best; i < openSetSize; i++) {
-			openSet[i] = openSet[i+1];
-		}
-		openSetSize--;
 		
-		// add the current cell inside the closed set + possible reallocation of ClosedSet vector
-		if(closedSetSize >= allocClosed){
-			allocClosed += ALLOC;
-			closedSet = (int*)realloc(closedSet, allocClosed*sizeof(int));
-		}
-		
-		if(c[0] != goal[0] && c[1] != goal[1]) {
-			closedSet[closedSetSize] = posC;
-			closedSetSize++;
-		}
 		
 //		closedSet[closedSetSize] = posC;
 //		closedSetSize++;
 		
-		printf ("\nClosed set [2] -> ");
+		/*printf ("\nClosed set [2] -> ");
 		for(int cs=0; cs<closedSetSize; cs++){
 			printf("%d,%d ", arrayCells[closedSet[cs]].row, arrayCells[closedSet[cs]].col);
-		}
+		}*/
 		
 		int numNeighbors = 0;
 		int neighbor[2];			// row and column of a neighbor
