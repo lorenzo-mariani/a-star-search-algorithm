@@ -5,9 +5,9 @@
 #include <time.h>
 #include <omp.h>
 
-#define DIM 50					// lateral dimension of the map
+#define DIM 10					// lateral dimension of the map
 #define CONNECTIVITY 8			// degree of freedom - it can be 4 or 8
-#define OBSTACLES 30				// percentage of obstacles
+#define OBSTACLES 0				// percentage of obstacles
 #define ALLOC 25				// dimension used for dynamic vector allocation 
 #define ARR_MAX 2000			// HALF of maximum dimension of an array to be printed
 #define SEED 0					// seed for the rand() function
@@ -49,7 +49,7 @@ double distance (Cell a, Cell b) {
 
 // fills the map at the beginning, with random values
 void fillMap(bool map[], int start[], int goal[]){
-	int elem,r,c;
+	int elem;
 	int libere = 0;
 	int obstPercent = OBSTACLES;
 	printf("Filling map... ");
@@ -57,10 +57,8 @@ void fillMap(bool map[], int start[], int goal[]){
 		int obst = 10000/obstPercent;	// obst = 10000/obstPercent is an obstacle
 		//srand(time(NULL));				// casual
 		srand(SEED);					// not casual
-		double start_time = omp_get_wtime();	/*///////////////////////////////////*/
-		#pragma omp parallel for shared(obst)				/*///////////////////////////////////  non funziona!!! */
-		for (r=0; r<DIM; r++){
-			for (c=0; c<DIM; c++){
+		for (int r=0; r<DIM; r++){
+			for (int c=0; c<DIM; c++){
 				elem = rand()%obst;				// pseudo-random integer in the range [0, obst]
 				if (elem < 100){
 					map[r*DIM+c] = false;		// the cell is not free
@@ -70,9 +68,6 @@ void fillMap(bool map[], int start[], int goal[]){
 				}
 			}
 		}
-		double end_time = omp_get_wtime();		/*///////////////////////////////////////*/
-		printf("Tempo per la creazione della mappa: %f\n", end_time-start_time);		/*/////////////////////////////*/
-		
 		// start and goal points assumed as always free
 		map[start[0]*DIM+start[1]] = true;
 		map[goal[0]*DIM+goal[1]] = true;
@@ -146,8 +141,6 @@ void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[]){
 	char *row = malloc(/*num_chars*/ 2*ARR_MAX);
 
 	printf("\n\n");
-	double start_time = omp_get_wtime();	/*/////////////////////////////////////////*/
-	//#pragma omp parallel for			/*//////////////////////////////////////////*/
 	for (r=0; r<DIM; r++){
 		for (n=0; n<ripet; n++){
 			for (c=0; c<ARR_MAX; c+=1){
@@ -198,10 +191,6 @@ void printPath(Cell arrayCells[], int bestPath[], int bestPathSize, bool map[]){
 		row[2*remain] = '\0';
 		printf("%s\n", row);
 	}
-	
-	double end_time = omp_get_wtime();		/*/////////////////////////////////////*/
-	printf("Tempo per la stampa della mappa: %f\n", end_time-start_time);	/*////////////////////////////*/
-	
 	free(row);
 }
 
@@ -266,11 +255,8 @@ int calculatePos(int cell[]){
 
 // initialization of every cell
 void initCells(Cell arrayCells[], int start[], int goal[]){	
-	int i,j;
-	double start_time = omp_get_wtime();
-	//#pragma omp parallel for		/*/////////////////////////////////*/
-	for (i = 0; i < DIM; i++) {
-		for (j = 0; j < DIM; j++) {
+	for (int i = 0; i < DIM; i++) {
+		for (int j = 0; j < DIM; j++) {
 			int pos = i*DIM + j;
 			arrayCells[pos].row = i;
 			arrayCells[pos].col = j;
@@ -281,8 +267,6 @@ void initCells(Cell arrayCells[], int start[], int goal[]){
 			arrayCells[pos].parentCol = -1;		// invalid position
 		}
 	}
-	double end_time = omp_get_wtime();
-	printf("Tempo per il riempimento di arrayCells: %f\n", end_time-start_time);
 
 	// initialization of the starting cell
 	int posS = calculatePos(start);
@@ -300,7 +284,6 @@ int chooseBestParent(Cell arrayCells[], bool map[], int thisCell[], int bestPare
 	int bpPos = calculatePos(bestParent);					
 	int currentParent[2];
 	int cpPos;
-	//#pragma omp parallel for 		/*////////////////////////////////////////	da qui va tolto di sicuro	*/
 	for (deltaRow=-1; deltaRow<=1; deltaRow++){
 		for (deltaCol=-1; deltaCol<=1; deltaCol++){
 			if (deltaRow != 0 || deltaCol != 0){	// this excludes the cell itself from the evaluation
@@ -425,6 +408,7 @@ void search (bool map[], int start[], int goal[]) {
 		c[0] = arrayCells[openSet[best]].row;
 		c[1] = arrayCells[openSet[best]].col;
 		counter++;
+		printf("\nCella corrente -> %d,%d", c[0], c[1]);
 		
 		int posC = calculatePos(c);		
 		if(posC == posS){
@@ -487,10 +471,12 @@ void search (bool map[], int start[], int goal[]) {
 					closedSet[closedSetSize] = openSet[i];
 					closedSetSize++;
 					
-					for (int j = i; j < openSetSize; j++){
-						
-						
-						
+					printf ("\nClosed set [1] -> ");
+					for(int cs=0; cs<closedSetSize; cs++){
+						printf("%d,%d ", arrayCells[closedSet[cs]].row, arrayCells[closedSet[cs]].col);
+					}
+					
+					for (int j = i; j < openSetSize; j++){					
 						// remove the cell from the OpenSet
 						openSet[j] = openSet[j+1];
 					}
@@ -512,8 +498,19 @@ void search (bool map[], int start[], int goal[]) {
 			allocClosed += ALLOC;
 			closedSet = (int*)realloc(closedSet, allocClosed*sizeof(int));
 		}
-		closedSet[closedSetSize] = posC;
-		closedSetSize++;
+		
+		if(c[0] != goal[0] && c[1] != goal[1]) {
+			closedSet[closedSetSize] = posC;
+			closedSetSize++;
+		}
+		
+//		closedSet[closedSetSize] = posC;
+//		closedSetSize++;
+		
+		printf ("\nClosed set [2] -> ");
+		for(int cs=0; cs<closedSetSize; cs++){
+			printf("%d,%d ", arrayCells[closedSet[cs]].row, arrayCells[closedSet[cs]].col);
+		}
 		
 		int numNeighbors = 0;
 		int neighbor[2];			// row and column of a neighbor
@@ -547,7 +544,6 @@ void search (bool map[], int start[], int goal[]) {
 		bool isInClosedSet;
 		double start_time, end_time;
 		// loop for checking every neighbor of the current cell
-		//#pragma omp parallel for schedule (static)		/*////////////////////////////////////////*/
 		for (i = 0; i < numNeighbors; i++) {
 			neighbor[0] = arrayCells[neighbors[i]].row;
 			neighbor[1] = arrayCells[neighbors[i]].col;
