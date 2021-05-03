@@ -5,7 +5,7 @@
 #include <time.h>
 #include <omp.h>
 
-#define DIM 40					// lateral dimension of the map
+#define DIM 70					// lateral dimension of the map
 #define CONNECTIVITY 8			// degree of freedom - it can be 4 or 8
 #define OBSTACLES 30			// percentage of obstacles
 #define ALLOC 10				// dimension used for dynamic vector allocation 
@@ -118,7 +118,7 @@ void fillMap(bool map[], int start[], int goal[]){
 			}
 		}
 	}
-	printf("Map filled with %d free cells.\n", free_cell_num);
+	printf("Map %dx%d filled with %d free cells.\n", DIM, DIM, free_cell_num);
 }
 
 // returns the position of a cell in the vector "arrayCells[]" used in the "search()" function
