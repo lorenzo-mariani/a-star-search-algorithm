@@ -6,11 +6,12 @@
 #include <string.h>
 #include <omp.h>
 
-#define DIM 200					// lateral dimension of the map
-#define CONNECTIVITY 4			// degree of freedom - it can be 4 or 8
-#define OBSTACLES 20			// percentage of obstacles
+#define DIM 500					// lateral dimension of the map
+#define CONNECTIVITY 8			// degree of freedom - it can be 4 or 8
+#define OBSTACLES 30			// percentage of obstacles
 #define ALLOC 10				// dimension used for dynamic vector allocation 
 #define ARR_MAX 2000			// half of maximum dimension of an array to be printed
+//#define SEED 0					// seed for the rand() function
 
 typedef struct {
 	int row, col;				// row and column of a cell
@@ -86,6 +87,49 @@ bool check (int start[], int goal[], bool map[]) {
 }
 
 // fills the map at the beginning, with random values
+/*void fillMap(bool map[], int start[], int goal[]){
+	int r,c,elem;
+	int free_cell_num = 0;
+	int obstPercent = OBSTACLES;
+	printf("Filling map... ");
+	if(obstPercent != 0){
+		int obst = 10000/obstPercent;	// obst = 10000/obstPercent is an obstacle
+		
+		//srand(time(NULL));			// casual
+		srand(SEED);					// not casual		
+		
+//		#pragma omp parallel for private(r,c,elem) shared(map, obst)
+		for (r=0; r<DIM; r++){
+			for (c=0; c<DIM; c++){
+//				#pragma omp atomic
+				elem=rand()%obst;				// pseudo-random integer in the range [0, obst]
+				if (elem < 100){
+					map[r*DIM+c] = false;		// the cell is not free
+				} else {
+					map[r*DIM+c] = true;		// the cell is free
+					free_cell_num++;
+				}
+//				printf("Working thread: %d, pos=%d,%d, valore = %d\n", omp_get_thread_num(), r, c, map[r*DIM+c]);
+			}
+		}
+		// start and goal points assumed as always free
+		map[start[0]*DIM+start[1]] = true;
+		map[goal[0]*DIM+goal[1]] = true;
+		
+	} else {							// no obstacles
+		free_cell_num = DIM*DIM;
+		
+		#pragma omp parallel for private(r,c) shared(map)
+		for (r=0; r<DIM; r++){
+			for (c=0; c<DIM; c++){
+				map[r*DIM+c] = true;		// free
+			}
+		}
+	}
+	printf("Map %dx%d filled with %d free cells.\n", DIM, DIM, free_cell_num);
+}*/
+
+// fills the map at the beginning, with random values
 bool fillMap(bool map[], int start[], int goal[]){
 	printf("Opening file with DIM = %d and OBSTACLES = %d...\n", DIM, OBSTACLES);
 
@@ -107,31 +151,17 @@ bool fillMap(bool map[], int start[], int goal[]){
 		exit(0);
 	} else {
 		printf("Filling map... ");
-		double startT = 0; double endT = 0;
-		startT = omp_get_wtime();
-		#pragma omp parallel for ordered private(i,c) shared(map,fp) reduction(+: free_cell_num)		// ma cambia la mappa ogni volta!!!
-		for(i=0; i<DIM*DIM; i++){
-			if(!feof(fp)){
-				
-				#pragma omp ordered
-				{
-					fscanf(fp,"%d ",&c);
-				}
-				
-				if(c){
-					map[i] = true;
-					free_cell_num++;
-				} else {
-					map[i] = false;
-				}
+		while(!feof(fp)){
+			fscanf(fp,"%d ",&c);
+			if(c){
+				map[i] = true;
+				free_cell_num++;
+			} else {
+				map[i] = false;
 			}
+			i++;
 		}
-		// start and goal points assumed as always free
-		map[start[0]*DIM+start[1]] = true;
-		map[goal[0]*DIM+goal[1]] = true;
-		
-		endT = omp_get_wtime();
-		printf("Map %dx%d filled in %f seconds with %d free cells.\n", DIM, DIM, endT-startT, free_cell_num);
+		printf("Map %dx%d filled with %d free cells.\n", DIM, DIM, free_cell_num);
 		return 1;
 	}
 }
@@ -146,7 +176,7 @@ void initCells(Cell arrayCells[], int start[], int goal[]){
 	int i,j,pos;
 	double startT,endT;
 	startT = omp_get_wtime();
-	#pragma omp parallel for private(i,j,pos) shared(arrayCells)		// qualche secondo risparmiato con mappe grandi. Verificare collapse
+//	#pragma omp parallel for private(i,j) shared(arrayCells,pos)
 	for (i = 0; i < DIM; i++) {
 		for (j = 0; j < DIM; j++) {
 			pos = i*DIM + j;
@@ -387,7 +417,7 @@ void search (bool map[], int start[], int goal[]) {
 
 	printf("Searching the best path...\n");
 	
-	double somma_time = 0, tot_time = 0;
+	double somma_time = 0;
 
 	while (1) {
 		int c[2];		// c is the current cell
@@ -407,7 +437,7 @@ void search (bool map[], int start[], int goal[]) {
 
 		// condition that terminates the algorithm 		
 		if((foundPath && !isThereBest) || openSetSize == 0){
-			printf("Tempo nel ciclo for interno: %f\nTempo nel ciclo for esterno: %f\n", somma_time,tot_time);
+			printf("Tempo nel ciclo for: %f\n", somma_time);
 			endSearch(foundPath, arrayCells, bestPath, bestPathSize, map, posS, posG);
 			freeAll(openSet, closedSet, path, bestPath);
 			return;
@@ -529,35 +559,37 @@ void search (bool map[], int start[], int goal[]) {
 		}
 				
 		int i, j, k;
-		
-		double start_time, st, et, end_time;
+		bool isInClosedSet = false;
+		double start_time, end_time;
 		
 		// loop for checking every neighbor of the current cell
-		
-		st = omp_get_wtime();
 		for (i = 0; i < numNeighbors; i++) {
 			neighbor[0] = arrayCells[neighbors[i]].row;
 			neighbor[1] = arrayCells[neighbors[i]].col;
 			int posN = calculatePos(neighbor);
-			bool isInClosedSet = false;
 			
 			// check if the neighbor is already in the closed set - if it is, nothing is done, otherwise it is evaluated
 			
 //			#pragma omp parallel for private (j, k) shared(arrayCells, openSetSize, openSet, closedSet, closedSetSize, neighbor, allocOpen)
 			start_time = omp_get_wtime();
-		//	omp_set_num_threads(2);
-			
-			#pragma omp parallel for private(j) shared(isInClosedSet)
+//			omp_set_num_threads(2);
+//			#pragma omp parallel for private(j) shared(closedSetSize)
 			for (j = 0; j < closedSetSize; j++) {
 //				printf("Working thread: %d, i=%d, j=%d, closedSetSize=%d\n", omp_get_thread_num(), i, j, closedSetSize);
 
-				if(!isInClosedSet){
-					if (neighbor[0] == arrayCells[closedSet[j]].row && neighbor[1] == arrayCells[closedSet[j]].col) {
+				//if(!isInClosedSet){
+					if ((neighbor[0] != arrayCells[closedSet[j]].row || neighbor[1] != arrayCells[closedSet[j]].col) && (j == closedSetSize - 1)) {
+						
+						// if I am here, the neighbor is NOT in the closed set
+						isInClosedSet = false;
+					}
+						
+					else if (neighbor[0] == arrayCells[closedSet[j]].row && neighbor[1] == arrayCells[closedSet[j]].col) {
 	//					printf("Entrato nell'else con thread num=%d, i=%d, j=%d, closedSetSize=%d\n", omp_get_thread_num(), i, j, closedSetSize);
 						isInClosedSet = true;
+						j = closedSetSize;		// exit the loop and consider a new neighbor
 					}
-				} 
-				//printf("Neighbor = %d,%d  -  closedSet = %d,%d   -   isInClosedSet = %d\n", neighbor[0], neighbor[1], arrayCells[closedSet[j]].row, arrayCells[closedSet[j]].col, isInClosedSet);
+				//} //else continue;
 			}
 			end_time = omp_get_wtime();
 			somma_time += end_time - start_time;
@@ -623,8 +655,6 @@ void search (bool map[], int start[], int goal[]) {
 				arrayCells[posN].parentCol = c[1];			
 			}
 		}
-		et = omp_get_wtime();
-		tot_time += et-st;
 	}
 }
 

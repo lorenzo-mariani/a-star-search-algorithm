@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define DIM 3
-#define OBSTACLES 30
+#define DIM 200
+#define OBSTACLES 20
 #define SEED 0
 
 bool createMap(bool map[]){
@@ -27,9 +27,7 @@ bool createMap(bool map[]){
 				}
 			}
 		}
-		// start and goal points assumed as always free
-		//map[start[0]*DIM+start[1]] = true;
-		//map[goal[0]*DIM+goal[1]] = true;
+		
 		
 	} else {							// no obstacles
 		free_cell_num = DIM*DIM;
@@ -69,7 +67,7 @@ int main(){
 		if(!createMap(map)){
 			exit(1);
 		}
-				
+		printf("Stampando la mappa... ");		
 		int r,c;
 		for(r=0; r<DIM; r++){
 			for(c=0; c<DIM; c++){
@@ -77,7 +75,7 @@ int main(){
 			}
 			fprintf(fp,"\n");
 		}
-		
+		printf("Mappa stampata su file.\n");
 		fclose(fp);
 		printf("File chiuso correttamente.\n");
 	}
