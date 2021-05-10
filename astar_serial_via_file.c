@@ -389,8 +389,8 @@ void search (bool map[], int start[], int goal[]) {
 
 		// condition that terminates the algorithm 		
 		if((foundPath && !isThereBest) || openSetSize == 0){
-			printf("Tempo nel ciclo for: %f\n", somma_time);
 			endSearch(foundPath, arrayCells, bestPath, bestPathSize, map, posS, posG);
+			printf("Tempo nel ciclo for esterno: %f\n", somma_time);
 			freeAll(openSet, closedSet, path, bestPath);
 			return;
 		}
