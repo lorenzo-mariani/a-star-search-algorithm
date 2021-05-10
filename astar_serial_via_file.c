@@ -6,12 +6,11 @@
 #include <string.h>
 #include <omp.h>
 
-#define DIM 500					// lateral dimension of the map
+#define DIM 20					// lateral dimension of the map
 #define CONNECTIVITY 8			// degree of freedom - it can be 4 or 8
-#define OBSTACLES 30			// percentage of obstacles
+#define OBSTACLES 10			// percentage of obstacles
 #define ALLOC 10				// dimension used for dynamic vector allocation 
 #define ARR_MAX 2000			// half of maximum dimension of an array to be printed
-//#define SEED 0					// seed for the rand() function
 
 typedef struct {
 	int row, col;				// row and column of a cell
@@ -87,49 +86,6 @@ bool check (int start[], int goal[], bool map[]) {
 }
 
 // fills the map at the beginning, with random values
-/*void fillMap(bool map[], int start[], int goal[]){
-	int r,c,elem;
-	int free_cell_num = 0;
-	int obstPercent = OBSTACLES;
-	printf("Filling map... ");
-	if(obstPercent != 0){
-		int obst = 10000/obstPercent;	// obst = 10000/obstPercent is an obstacle
-		
-		//srand(time(NULL));			// casual
-		srand(SEED);					// not casual		
-		
-//		#pragma omp parallel for private(r,c,elem) shared(map, obst)
-		for (r=0; r<DIM; r++){
-			for (c=0; c<DIM; c++){
-//				#pragma omp atomic
-				elem=rand()%obst;				// pseudo-random integer in the range [0, obst]
-				if (elem < 100){
-					map[r*DIM+c] = false;		// the cell is not free
-				} else {
-					map[r*DIM+c] = true;		// the cell is free
-					free_cell_num++;
-				}
-//				printf("Working thread: %d, pos=%d,%d, valore = %d\n", omp_get_thread_num(), r, c, map[r*DIM+c]);
-			}
-		}
-		// start and goal points assumed as always free
-		map[start[0]*DIM+start[1]] = true;
-		map[goal[0]*DIM+goal[1]] = true;
-		
-	} else {							// no obstacles
-		free_cell_num = DIM*DIM;
-		
-		#pragma omp parallel for private(r,c) shared(map)
-		for (r=0; r<DIM; r++){
-			for (c=0; c<DIM; c++){
-				map[r*DIM+c] = true;		// free
-			}
-		}
-	}
-	printf("Map %dx%d filled with %d free cells.\n", DIM, DIM, free_cell_num);
-}*/
-
-// fills the map at the beginning, with random values
 bool fillMap(bool map[], int start[], int goal[]){
 	printf("Opening file with DIM = %d and OBSTACLES = %d...\n", DIM, OBSTACLES);
 
@@ -137,12 +93,8 @@ bool fillMap(bool map[], int start[], int goal[]){
 	
 	int free_cell_num = 0, i = 0;
 	int c;
-	char fname[40], buffer[5];
-	strcpy(fname,"./maps/map-dim");
-	strcat(fname,itoa(DIM,buffer,10));
-	strcat(fname,"-obst");
-	strcat(fname,itoa(OBSTACLES,buffer,10));
-	strcat(fname,"\0");
+	char fname[40];
+	sprintf(fname,"./maps/map-dim%d-obst%d",DIM,OBSTACLES);
 	
 	fp = fopen(fname,"r");
 	

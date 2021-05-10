@@ -93,12 +93,8 @@ bool fillMap(bool map[], int start[], int goal[]){
 	
 	int free_cell_num = 0, i = 0;
 	int c;
-	char fname[40], buffer[5];
-	strcpy(fname,"./maps/map-dim");
-	strcat(fname,itoa(DIM,buffer,10));
-	strcat(fname,"-obst");
-	strcat(fname,itoa(OBSTACLES,buffer,10));
-	strcat(fname,"\0");
+	char fname[40];
+	sprintf(fname,"./maps/map-dim%d-obst%d",DIM,OBSTACLES);
 	
 	fp = fopen(fname,"r");
 	

@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define DIM 200
-#define OBSTACLES 20
+#define DIM 20
+#define OBSTACLES 10
 #define SEED 0
 
 bool createMap(bool map[]){
@@ -53,11 +53,8 @@ int main(){
 		exit(1);
 	}
 	
-	char fname[40], buffer[5];
-	strcpy(fname,"./maps/map-dim");
-	strcat(fname,itoa(DIM,buffer,10));
-	strcat(fname,"-obst");
-	strcat(fname,itoa(OBSTACLES,buffer,10));
+	char fname[40];
+	sprintf(fname,"./maps/map-dim%d-obst%d",DIM,OBSTACLES);
 	
 	fp = fopen(fname,"w");
 	if (fp == NULL){
