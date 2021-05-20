@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define DIM 20
-#define OBSTACLES 10
+#define DIM 2000
+#define OBSTACLES 20
 #define SEED 0
 
 bool createMap(bool map[]){

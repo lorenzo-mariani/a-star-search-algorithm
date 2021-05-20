@@ -5,9 +5,9 @@
 #include <time.h>
 #include <omp.h>
 
-#define DIM 500					// lateral dimension of the map
+#define DIM 20					// lateral dimension of the map
 #define CONNECTIVITY 8			// degree of freedom - it can be 4 or 8
-#define OBSTACLES 10			// percentage of obstacles
+#define OBSTACLES 35			// percentage of obstacles
 #define ALLOC 10				// dimension used for dynamic vector allocation 
 #define ARR_MAX 2000			// half of maximum dimension of an array to be printed
 #define SEED 0					// seed for the rand() function
