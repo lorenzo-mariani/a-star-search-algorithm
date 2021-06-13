@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define DIM 1000		// dimension of rows and columns of the map
-#define OBSTACLES 10	// percentage of obstacles in the map
+#define DIM 1000		// Dimension of rows and columns of the map
+#define OBSTACLES 10	// Percentage of obstacles in the map
 #define SEED 0
 
 /* This function is used to create a map of a given dimension and a given percentage of obstacles. If the percentage of obstacles is greater
@@ -21,27 +21,27 @@ bool createMap(bool map[]){
 	to the percentage of obstacles, will be indicated as occupied [false], while the rest will be indicated as free [true]. */
 	if(obstPercent > 0){
 		int obst = 10000/obstPercent;		// obst = 10000/obstPercent is an obstacle
-		srand(SEED);						// not casual		
+		srand(SEED);						// Not casual		
 		
 		for (r=0; r<DIM; r++){
 			for (c=0; c<DIM; c++){
-				elem=rand()%obst;			// pseudo-random integer in the range [0, obst]
+				elem=rand()%obst;			// Pseudo-random integer in the range [0, obst]
 				if (elem < 100){
-					map[r*DIM+c] = false;	// cell occupied, i.e., there is an obstacle
+					map[r*DIM+c] = false;	// Cell occupied, i.e., there is an obstacle
 				} else {
-					map[r*DIM+c] = true;	// cell free
+					map[r*DIM+c] = true;	// Cell free
 					free_cell_num++;
 				}
 			}
 		}	
 	} 
 	/* If we enter this else if() statement, then the percentage of obstacles is equal to zero. Consequently, all cells are marked as free [true]. */
-	else if (obstPercent == 0) {			// no obstacles
+	else if (obstPercent == 0) {			// No obstacles
 		free_cell_num = DIM*DIM;
 		
 		for (r=0; r<DIM; r++){
 			for (c=0; c<DIM; c++){
-				map[r*DIM+c] = true;		// cell free
+				map[r*DIM+c] = true;		// Cell free
 			}
 		}
 	} 
