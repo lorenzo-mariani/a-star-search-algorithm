@@ -10,8 +10,7 @@ Link to the report: https://docs.google.com/document/d/1CGENxiXbEKRIlrjj887XKV81
 ...
 
 Mode of use:
-- create /maps and /paths directories
-- compile the files this way: gcc a-star-serial.c -o a-star-serial -lm -fopenmp
-- build the map with the desired parameters, by compiling and launching create-map
-- launch the a-star algoithm, with the same parameters (DIM, OBSTACLES)
-- the found path is in the /paths folder.
+- Create **/maps** and **/paths** directories
+- Build the map with the desired parameters, by compiling and launching *create-map.c*
+- Launch the a-star algorithm (*a-star-serial.c* or *a-star-parallel.c*), with the same parameters (DIM, OBSTACLES) used in *create-map.c*. **NOTE!** Compile the files in this way: *gcc a-star-serial.c -o a-star-serial -lm -fopenmp*
+- The found path is in the **/paths** folder.
